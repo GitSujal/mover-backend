@@ -1,0 +1,153 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with PostGIS
+  postgres:
+    image: postgis/postgis:15-3.4
+    container_name: movehub-postgres
+    environment:
+      POSTGRES_USER: movehub
+      POSTGRES_PASSWORD: movehub_dev_password
+      POSTGRES_DB: movehub
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U movehub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - movehub-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: movehub-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - movehub-network
+
+  # FastAPI Application
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: movehub-api
+    environment:
+      # Application
+      APP_NAME: MoveHub
+      ENVIRONMENT: development
+      DEBUG: "true"
+      LOG_LEVEL: INFO
+
+      # Database
+      DATABASE_URL: postgresql+asyncpg://movehub:movehub_dev_password@postgres:5432/movehub
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+
+      # Security (development only - change in production!)
+      JWT_SECRET_KEY: dev-secret-key-change-in-production-minimum-32-characters
+
+      # AWS (for local development, use LocalStack or mocked services)
+      AWS_REGION: us-east-1
+      S3_BUCKET_NAME: movehub-dev-uploads
+
+      # Stripe (use test keys)
+      STRIPE_SECRET_KEY: sk_test_your_key_here
+      STRIPE_PUBLISHABLE_KEY: pk_test_your_key_here
+      STRIPE_WEBHOOK_SECRET: whsec_your_secret_here
+
+      # CORS
+      CORS_ORIGINS: '["http://localhost:3000", "http://localhost:8000"]'
+
+      # OpenTelemetry
+      OTEL_SERVICE_NAME: movehub-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+    networks:
+      - movehub-network
+    command: >
+      sh -c "
+        alembic upgrade head &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+  # Jaeger (OpenTelemetry tracing)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: movehub-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+    networks:
+      - movehub-network
+
+  # Prometheus (metrics)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: movehub-prometheus
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9091:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - movehub-network
+
+  # Grafana (visualization)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: movehub-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - movehub-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  movehub-network:
+    driver: bridge
