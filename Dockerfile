@@ -18,12 +18,15 @@ RUN apt-get update && apt-get install -y \
 # Install UV (extremely fast Python package installer)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Copy dependency files
-COPY pyproject.toml ./
+# Copy dependency files and app structure
+COPY pyproject.toml README.md ./
+COPY app/ ./app/
 
 # Install dependencies using UV
 # UV is 10-100x faster than pip and handles dependency resolution automatically
-RUN uv pip install --system --no-cache -r pyproject.toml
+# Install the package in editable mode so alembic can find the app module
+RUN uv pip install --system --no-cache -e ".[dev,test]" && \
+    uv pip install --system --no-cache psycopg2-binary
 
 # Stage 2: Runtime
 FROM python:3.11-slim
