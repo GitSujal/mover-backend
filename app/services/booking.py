@@ -7,10 +7,8 @@ Uses PostgreSQL exclusion constraints for atomic conflict detection.
 
 import logging
 from datetime import datetime, timedelta
-from typing import List, Optional
 from uuid import UUID
 
-from opentelemetry import trace
 from sqlalchemy import and_, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -132,7 +130,7 @@ class BookingService:
             ]
 
             # Generate suggested slots if not available
-            suggested_slots: List[AvailabilitySlot] = []
+            suggested_slots: list[AvailabilitySlot] = []
             if not is_available and conflicts:
                 # Suggest slot after last conflict
                 latest_conflict = max(conflicts, key=lambda b: b.effective_end)
@@ -285,7 +283,7 @@ class BookingService:
                 raise
 
     @staticmethod
-    async def get_booking(db: AsyncSession, booking_id: UUID) -> Optional[Booking]:
+    async def get_booking(db: AsyncSession, booking_id: UUID) -> Booking | None:
         """
         Get booking by ID.
 
@@ -303,12 +301,12 @@ class BookingService:
     @staticmethod
     async def list_bookings(
         db: AsyncSession,
-        org_id: Optional[UUID] = None,
-        truck_id: Optional[UUID] = None,
-        status: Optional[BookingStatus] = None,
+        org_id: UUID | None = None,
+        truck_id: UUID | None = None,
+        status: BookingStatus | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Booking]:
+    ) -> list[Booking]:
         """
         List bookings with filters.
 

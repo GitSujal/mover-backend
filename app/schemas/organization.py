@@ -1,9 +1,8 @@
 """Organization schemas."""
 
-from typing import Optional
 from uuid import UUID
 
-from pydantic import EmailStr, Field, field_validator
+from pydantic import EmailStr, Field
 
 from app.models.organization import OrganizationStatus
 from app.schemas.base import BaseSchema, ResourceResponse
@@ -18,7 +17,7 @@ class OrganizationBase(BaseSchema):
     business_license_number: str = Field(..., min_length=1, max_length=100)
     tax_id: str = Field(..., min_length=1, max_length=50)
     address_line1: str = Field(..., min_length=1, max_length=255)
-    address_line2: Optional[str] = Field(None, max_length=255)
+    address_line2: str | None = Field(None, max_length=255)
     city: str = Field(..., min_length=1, max_length=100)
     state: str = Field(..., min_length=2, max_length=50)
     zip_code: str = Field(..., pattern=r"^\d{5}(-\d{4})?$")
@@ -33,14 +32,14 @@ class OrganizationCreate(OrganizationBase):
 class OrganizationUpdate(BaseSchema):
     """Schema for updating an organization."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    email: Optional[EmailStr] = None
-    phone: Optional[str] = Field(None, pattern=r"^\+?1?\d{9,15}$")
-    address_line1: Optional[str] = Field(None, min_length=1, max_length=255)
-    address_line2: Optional[str] = Field(None, max_length=255)
-    city: Optional[str] = Field(None, min_length=1, max_length=100)
-    state: Optional[str] = Field(None, min_length=2, max_length=50)
-    zip_code: Optional[str] = Field(None, pattern=r"^\d{5}(-\d{4})?$")
+    name: str | None = Field(None, min_length=1, max_length=255)
+    email: EmailStr | None = None
+    phone: str | None = Field(None, pattern=r"^\+?1?\d{9,15}$")
+    address_line1: str | None = Field(None, min_length=1, max_length=255)
+    address_line2: str | None = Field(None, max_length=255)
+    city: str | None = Field(None, min_length=1, max_length=100)
+    state: str | None = Field(None, min_length=2, max_length=50)
+    zip_code: str | None = Field(None, pattern=r"^\d{5}(-\d{4})?$")
 
 
 class OrganizationResponse(OrganizationBase, ResourceResponse):
@@ -48,4 +47,4 @@ class OrganizationResponse(OrganizationBase, ResourceResponse):
 
     id: UUID
     status: OrganizationStatus
-    stripe_account_id: Optional[str] = None
+    stripe_account_id: str | None = None

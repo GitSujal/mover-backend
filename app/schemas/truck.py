@@ -1,9 +1,8 @@
 """Truck schemas."""
 
-from typing import Optional, Tuple
 from uuid import UUID
 
-from pydantic import Field, field_validator
+from pydantic import Field
 
 from app.models.truck import TruckSize, TruckStatus
 from app.schemas.base import BaseSchema, ResourceResponse
@@ -34,17 +33,17 @@ class TruckCreate(TruckBase):
     """Schema for creating a truck."""
 
     base_location: LocationInput = Field(..., description="Base location (lat, long)")
-    insurance_document_url: Optional[str] = Field(None, max_length=512)
+    insurance_document_url: str | None = Field(None, max_length=512)
 
 
 class TruckUpdate(BaseSchema):
     """Schema for updating a truck."""
 
-    license_plate: Optional[str] = Field(None, min_length=1, max_length=20)
-    status: Optional[TruckStatus] = None
-    base_location: Optional[LocationInput] = None
-    registration_expiry: Optional[str] = Field(None, pattern=r"^\d{4}-\d{2}-\d{2}$")
-    insurance_document_url: Optional[str] = Field(None, max_length=512)
+    license_plate: str | None = Field(None, min_length=1, max_length=20)
+    status: TruckStatus | None = None
+    base_location: LocationInput | None = None
+    registration_expiry: str | None = Field(None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    insurance_document_url: str | None = Field(None, max_length=512)
 
 
 class TruckResponse(TruckBase, ResourceResponse):
@@ -55,4 +54,4 @@ class TruckResponse(TruckBase, ResourceResponse):
     status: TruckStatus
     base_location_lat: float = Field(..., description="Base latitude")
     base_location_lng: float = Field(..., description="Base longitude")
-    insurance_document_url: Optional[str] = None
+    insurance_document_url: str | None = None

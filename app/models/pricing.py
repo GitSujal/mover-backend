@@ -1,6 +1,6 @@
 """Pricing configuration model."""
 
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Numeric
@@ -58,7 +58,7 @@ class PricingConfig(BaseModel):
     #     "days": [0, 6]
     #   }
     # ]
-    surcharge_rules: Mapped[Dict[str, Any]] = mapped_column(
+    surcharge_rules: Mapped[dict[str, Any]] = mapped_column(
         JSONB,
         nullable=False,
         default=list,

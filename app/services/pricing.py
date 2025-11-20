@@ -7,9 +7,7 @@ All calculations are traced with OpenTelemetry for observability.
 
 import logging
 from datetime import datetime, time
-from typing import Any, Dict, List
-
-from opentelemetry import trace
+from typing import Any
 
 from app.core.config import settings
 from app.core.observability import pricing_calculation_histogram, tracer
@@ -25,8 +23,8 @@ class PricingService:
     def _apply_surcharge_rule(
         rule: SurchargeRule,
         base_amount: float,
-        booking_details: Dict[str, Any],
-    ) -> tuple[float, Dict[str, Any]]:
+        booking_details: dict[str, Any],
+    ) -> tuple[float, dict[str, Any]]:
         """
         Apply a single surcharge rule.
 
@@ -39,7 +37,7 @@ class PricingService:
             Tuple of (surcharge_amount, surcharge_details)
         """
         surcharge = 0.0
-        details: Dict[str, Any] = {
+        details: dict[str, Any] = {
             "type": rule.type,
             "applied": False,
             "amount": 0.0,
@@ -130,7 +128,7 @@ class PricingService:
     @staticmethod
     def calculate_price(
         pricing_config: PricingConfigResponse,
-        booking_details: Dict[str, Any],
+        booking_details: dict[str, Any],
     ) -> PriceEstimate:
         """
         Calculate total price for a booking.
@@ -162,7 +160,7 @@ class PricingService:
 
             # Apply surcharge rules
             total_surcharges = 0.0
-            applied_surcharges: List[Dict[str, Any]] = []
+            applied_surcharges: list[dict[str, Any]] = []
 
             for rule in pricing_config.surcharge_rules:
                 surcharge_amount, surcharge_details = PricingService._apply_surcharge_rule(

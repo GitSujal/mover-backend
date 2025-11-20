@@ -16,7 +16,7 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.models.user import User, CustomerSession
+from app.models.user import CustomerSession, User
 from app.schemas.auth import (
     CustomerOTPRequest,
     CustomerOTPVerify,

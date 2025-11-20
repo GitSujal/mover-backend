@@ -1,6 +1,6 @@
 """Pricing schemas."""
 
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import Field, field_validator
@@ -14,17 +14,17 @@ class SurchargeRule(BaseSchema):
     type: Literal[
         "stairs", "piano", "weekend", "holiday", "after_hours", "fragile", "distance", "custom"
     ]
-    amount: Optional[float] = Field(None, ge=0, description="Flat fee amount")
-    multiplier: Optional[float] = Field(None, gt=0, description="Price multiplier")
-    per_flight: Optional[bool] = Field(None, description="Apply per flight of stairs")
-    min_time: Optional[str] = Field(None, pattern=r"^\d{2}:\d{2}$", description="Start time (HH:MM)")
-    max_time: Optional[str] = Field(None, pattern=r"^\d{2}:\d{2}$", description="End time (HH:MM)")
-    days: Optional[List[int]] = Field(None, description="Days of week (0=Sunday, 6=Saturday)")
-    description: Optional[str] = Field(None, max_length=255)
+    amount: float | None = Field(None, ge=0, description="Flat fee amount")
+    multiplier: float | None = Field(None, gt=0, description="Price multiplier")
+    per_flight: bool | None = Field(None, description="Apply per flight of stairs")
+    min_time: str | None = Field(None, pattern=r"^\d{2}:\d{2}$", description="Start time (HH:MM)")
+    max_time: str | None = Field(None, pattern=r"^\d{2}:\d{2}$", description="End time (HH:MM)")
+    days: list[int] | None = Field(None, description="Days of week (0=Sunday, 6=Saturday)")
+    description: str | None = Field(None, max_length=255)
 
     @field_validator("days")
     @classmethod
-    def validate_days(cls, v: Optional[List[int]]) -> Optional[List[int]]:
+    def validate_days(cls, v: list[int] | None) -> list[int] | None:
         """Validate days are in range 0-6."""
         if v is not None:
             if not all(0 <= day <= 6 for day in v):
@@ -38,7 +38,7 @@ class PricingConfigBase(BaseSchema):
     base_hourly_rate: float = Field(..., gt=0, description="Base hourly rate in USD")
     base_mileage_rate: float = Field(..., ge=0, description="Base mileage rate per mile in USD")
     minimum_charge: float = Field(..., ge=0, description="Minimum charge in USD")
-    surcharge_rules: List[SurchargeRule] = Field(
+    surcharge_rules: list[SurchargeRule] = Field(
         default_factory=list, description="List of surcharge rules"
     )
 
@@ -62,7 +62,7 @@ class PriceBreakdown(BaseSchema):
 
     base_hourly_cost: float = Field(..., description="Cost from hourly rate")
     base_mileage_cost: float = Field(..., description="Cost from mileage")
-    surcharges: List[Dict[str, Any]] = Field(
+    surcharges: list[dict[str, Any]] = Field(
         default_factory=list, description="Applied surcharges with details"
     )
     subtotal: float = Field(..., description="Subtotal before minimum")

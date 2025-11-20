@@ -5,7 +5,7 @@ Handles JWT tokens, password hashing, and API key validation.
 
 import secrets
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -45,8 +45,8 @@ def hash_password(password: str) -> str:
 
 def create_access_token(
     subject: str,
-    additional_claims: Optional[Dict[str, Any]] = None,
-    expires_delta: Optional[timedelta] = None,
+    additional_claims: dict[str, Any] | None = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """
     Create a JWT access token.
@@ -112,7 +112,7 @@ def create_refresh_token(subject: str) -> str:
     return encoded_jwt
 
 
-def decode_token(token: str) -> Dict[str, Any]:
+def decode_token(token: str) -> dict[str, Any]:
     """
     Decode and validate a JWT token.
 
@@ -134,7 +134,7 @@ def decode_token(token: str) -> Dict[str, Any]:
     return payload
 
 
-def verify_token(token: str, token_type: str = "access") -> Optional[str]:
+def verify_token(token: str, token_type: str = "access") -> str | None:
     """
     Verify a JWT token and return the subject.
 

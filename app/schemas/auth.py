@@ -1,6 +1,5 @@
 """Authentication schemas."""
 
-from typing import Optional
 
 from pydantic import EmailStr, Field
 
@@ -14,7 +13,7 @@ class UserCreate(BaseSchema):
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
-    phone: Optional[str] = Field(None, pattern=r"^\+?1?\d{9,15}$")
+    phone: str | None = Field(None, pattern=r"^\+?1?\d{9,15}$")
     password: str = Field(..., min_length=8, max_length=100)
     role: UserRole = UserRole.ORG_STAFF
 

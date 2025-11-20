@@ -1,27 +1,27 @@
 """Pydantic schemas for API requests and responses."""
 
+from app.schemas.auth import (
+    CustomerOTPRequest,
+    CustomerOTPVerify,
+    TokenResponse,
+    UserCreate,
+    UserLogin,
+)
 from app.schemas.booking import (
+    AvailabilityCheck,
+    AvailabilityResponse,
     BookingCreate,
     BookingResponse,
     BookingUpdate,
-    AvailabilityCheck,
-    AvailabilityResponse,
 )
+from app.schemas.driver import DriverCreate, DriverResponse, DriverUpdate
 from app.schemas.organization import (
     OrganizationCreate,
     OrganizationResponse,
     OrganizationUpdate,
 )
-from app.schemas.pricing import PricingConfigCreate, PricingConfigResponse, PriceEstimate
+from app.schemas.pricing import PriceEstimate, PricingConfigCreate, PricingConfigResponse
 from app.schemas.truck import TruckCreate, TruckResponse, TruckUpdate
-from app.schemas.driver import DriverCreate, DriverResponse, DriverUpdate
-from app.schemas.auth import (
-    UserCreate,
-    UserLogin,
-    TokenResponse,
-    CustomerOTPRequest,
-    CustomerOTPVerify,
-)
 
 __all__ = [
     # Booking

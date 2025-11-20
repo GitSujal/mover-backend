@@ -12,8 +12,8 @@ Connection Pooling Strategy:
 """
 
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional
 
 from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import (
@@ -23,10 +23,9 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.pool import NullPool, Pool, QueuePool
+from sqlalchemy.pool import NullPool, QueuePool
 
 from app.core.config import settings
-from app.core.observability import tracer
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +38,8 @@ class Base(DeclarativeBase):
 
 
 # Global engine and session factory
-_engine: Optional[AsyncEngine] = None
-_session_factory: Optional[async_sessionmaker[AsyncSession]] = None
+_engine: AsyncEngine | None = None
+_session_factory: async_sessionmaker[AsyncSession] | None = None
 
 
 def get_engine() -> AsyncEngine:
@@ -222,8 +221,8 @@ async def get_db_context() -> AsyncGenerator[AsyncSession, None]:
 
 async def set_rls_context(
     session: AsyncSession,
-    org_id: Optional[str] = None,
-    user_id: Optional[str] = None,
+    org_id: str | None = None,
+    user_id: str | None = None,
 ) -> None:
     """
     Set Row-Level Security (RLS) context for the current session.
@@ -268,12 +267,12 @@ class RLSSession:
 
     def __init__(
         self,
-        org_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        org_id: str | None = None,
+        user_id: str | None = None,
     ):
         self.org_id = org_id
         self.user_id = user_id
-        self.session: Optional[AsyncSession] = None
+        self.session: AsyncSession | None = None
 
     async def __aenter__(self) -> AsyncSession:
         """Enter context and set RLS."""

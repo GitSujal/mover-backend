@@ -5,11 +5,8 @@ Handles payment processing with platform fees for marketplace model.
 """
 
 import logging
-from typing import Dict, Optional
-from uuid import UUID
 
 import stripe
-from opentelemetry import trace
 
 from app.core.config import settings
 from app.core.observability import tracer
@@ -29,7 +26,7 @@ class PaymentService:
         customer_email: str,
         org_stripe_account_id: str,
         platform_fee: float,
-        metadata: Optional[Dict[str, str]] = None,
+        metadata: dict[str, str] | None = None,
     ) -> stripe.PaymentIntent:
         """
         Create Stripe PaymentIntent with platform fee.
@@ -197,8 +194,8 @@ class PaymentService:
     @staticmethod
     async def refund_payment(
         payment_intent_id: str,
-        amount: Optional[float] = None,
-        reason: Optional[str] = None,
+        amount: float | None = None,
+        reason: str | None = None,
     ) -> stripe.Refund:
         """
         Refund a payment.
@@ -215,7 +212,7 @@ class PaymentService:
             span.set_attribute("payment.intent_id", payment_intent_id)
 
             try:
-                refund_params: Dict[str, any] = {
+                refund_params: dict[str, any] = {
                     "payment_intent": payment_intent_id,
                 }
 

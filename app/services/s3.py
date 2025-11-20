@@ -6,8 +6,7 @@ Provides secure file uploads without exposing AWS credentials to clients.
 
 import logging
 import mimetypes
-from datetime import datetime, timedelta
-from typing import Dict, Optional
+from datetime import datetime
 from uuid import uuid4
 
 import aioboto3
@@ -36,8 +35,8 @@ class S3Service:
         self,
         file_key: str,
         content_type: str,
-        max_size_mb: Optional[int] = None,
-    ) -> Dict[str, any]:
+        max_size_mb: int | None = None,
+    ) -> dict[str, any]:
         """
         Generate pre-signed POST URL for direct client uploads.
 

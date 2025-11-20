@@ -5,10 +5,9 @@ Provides JWT validation for movers and session validation for customers.
 """
 
 import logging
-from typing import Optional
 from uuid import UUID
 
-from fastapi import Cookie, Depends, HTTPException, Header, status
+from fastapi import Cookie, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db, set_rls_context
 from app.core.security import verify_token
 from app.models.organization import Organization, OrganizationStatus
-from app.models.user import User, UserRole, CustomerSession
+from app.models.user import CustomerSession, User, UserRole
 from app.services.redis_cache import RedisCache
 
 logger = logging.getLogger(__name__)
@@ -117,7 +116,7 @@ async def require_role(
 
 
 async def get_current_customer_session(
-    session_token: Optional[str] = Cookie(None),
+    session_token: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ) -> CustomerSession:
     """

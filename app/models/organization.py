@@ -1,7 +1,7 @@
 """Organization model for moving companies."""
 
 import enum
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -62,17 +62,17 @@ class Organization(BaseModel):
     stripe_account_id: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True)
 
     # Relationships
-    users: Mapped[List["User"]] = relationship("User", back_populates="organization")
-    trucks: Mapped[List["Truck"]] = relationship(
+    users: Mapped[list["User"]] = relationship("User", back_populates="organization")
+    trucks: Mapped[list["Truck"]] = relationship(
         "Truck", back_populates="organization", cascade="all, delete-orphan"
     )
-    drivers: Mapped[List["Driver"]] = relationship(
+    drivers: Mapped[list["Driver"]] = relationship(
         "Driver", back_populates="organization", cascade="all, delete-orphan"
     )
-    insurance_policies: Mapped[List["InsurancePolicy"]] = relationship(
+    insurance_policies: Mapped[list["InsurancePolicy"]] = relationship(
         "InsurancePolicy", back_populates="organization", cascade="all, delete-orphan"
     )
-    pricing_configs: Mapped[List["PricingConfig"]] = relationship(
+    pricing_configs: Mapped[list["PricingConfig"]] = relationship(
         "PricingConfig", back_populates="organization", cascade="all, delete-orphan"
     )
 

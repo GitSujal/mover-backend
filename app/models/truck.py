@@ -1,7 +1,7 @@
 """Truck model with PostGIS support."""
 
 import enum
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from geoalchemy2 import Geography
@@ -81,7 +81,7 @@ class Truck(BaseModel):
 
     # Relationships
     organization: Mapped["Organization"] = relationship("Organization", back_populates="trucks")
-    bookings: Mapped[List["Booking"]] = relationship("Booking", back_populates="truck")
+    bookings: Mapped[list["Booking"]] = relationship("Booking", back_populates="truck")
 
     __table_args__ = (
         CheckConstraint("year >= 1990 AND year <= 2030", name="valid_year"),

@@ -6,12 +6,11 @@ Provides caching for sessions, availability windows, and frequently accessed dat
 
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 import redis.asyncio as redis
-from pydantic import BaseModel
 
 from app.core.config import settings
 from app.core.observability import tracer
@@ -88,7 +87,7 @@ class RedisCache:
                 logger.error(f"Failed to cache session: {e}", exc_info=True)
                 return False
 
-    async def get_customer_session(self, session_token: str) -> Optional[Dict[str, Any]]:
+    async def get_customer_session(self, session_token: str) -> dict[str, Any] | None:
         """
         Get customer session from cache.
 
@@ -292,7 +291,7 @@ class RedisCache:
         self,
         truck_id: UUID,
         date: datetime,
-    ) -> Optional[bool]:
+    ) -> bool | None:
         """
         Get cached availability status.
 

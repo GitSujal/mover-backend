@@ -2,7 +2,7 @@
 
 import enum
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint
@@ -43,7 +43,7 @@ class User(BaseModel):
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
-    phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     # Authentication
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -72,10 +72,10 @@ class User(BaseModel):
         nullable=False,
         default=False,
     )
-    totp_secret: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    totp_secret: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     # Last Login
-    last_login_at: Mapped[Optional[datetime]] = mapped_column(
+    last_login_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
@@ -123,8 +123,8 @@ class CustomerSession(BaseModel):
     identifier_type: Mapped[str] = mapped_column(String(10), nullable=False)  # 'email' or 'phone'
 
     # OTP for verification
-    otp_code: Mapped[Optional[str]] = mapped_column(String(6), nullable=True)
-    otp_expires_at: Mapped[Optional[datetime]] = mapped_column(
+    otp_code: Mapped[str | None] = mapped_column(String(6), nullable=True)
+    otp_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )

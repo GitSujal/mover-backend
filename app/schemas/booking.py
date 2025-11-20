@@ -1,14 +1,12 @@
 """Booking schemas."""
 
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID
 
 from pydantic import EmailStr, Field, field_validator
 
 from app.models.booking import BookingStatus
 from app.schemas.base import BaseSchema, ResourceResponse
-from app.schemas.pricing import PriceEstimate
 
 
 class BookingBase(BaseSchema):
@@ -28,12 +26,12 @@ class BookingBase(BaseSchema):
     dropoff_zip: str = Field(..., pattern=r"^\d{5}(-\d{4})?$")
     estimated_distance_miles: float = Field(..., gt=0)
     estimated_duration_hours: float = Field(..., gt=0, le=24)
-    special_items: List[str] = Field(default_factory=list)
+    special_items: list[str] = Field(default_factory=list)
     pickup_floors: int = Field(default=0, ge=0, le=100)
     dropoff_floors: int = Field(default=0, ge=0, le=100)
     has_elevator_pickup: bool = False
     has_elevator_dropoff: bool = False
-    customer_notes: Optional[str] = Field(None, max_length=2000)
+    customer_notes: str | None = Field(None, max_length=2000)
 
     @field_validator("move_date")
     @classmethod
@@ -54,10 +52,10 @@ class BookingCreate(BookingBase):
 class BookingUpdate(BaseSchema):
     """Schema for updating a booking."""
 
-    move_date: Optional[datetime] = None
-    status: Optional[BookingStatus] = None
-    final_amount: Optional[float] = Field(None, ge=0)
-    internal_notes: Optional[str] = Field(None, max_length=2000)
+    move_date: datetime | None = None
+    status: BookingStatus | None = None
+    final_amount: float | None = Field(None, ge=0)
+    internal_notes: str | None = Field(None, max_length=2000)
 
 
 class BookingResponse(BookingBase, ResourceResponse):
@@ -70,11 +68,11 @@ class BookingResponse(BookingBase, ResourceResponse):
     effective_start: datetime
     effective_end: datetime
     estimated_amount: float
-    final_amount: Optional[float] = None
+    final_amount: float | None = None
     platform_fee: float
-    stripe_payment_intent_id: Optional[str] = None
+    stripe_payment_intent_id: str | None = None
     status: BookingStatus
-    internal_notes: Optional[str] = None
+    internal_notes: str | None = None
 
 
 class AvailabilityCheck(BaseSchema):
@@ -100,5 +98,5 @@ class AvailabilityResponse(BaseSchema):
     is_available: bool
     requested_start: datetime
     requested_end: datetime
-    conflicts: List[BookingResponse] = Field(default_factory=list)
-    suggested_slots: List[AvailabilitySlot] = Field(default_factory=list)
+    conflicts: list[BookingResponse] = Field(default_factory=list)
+    suggested_slots: list[AvailabilitySlot] = Field(default_factory=list)

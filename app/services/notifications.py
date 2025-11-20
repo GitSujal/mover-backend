@@ -5,9 +5,7 @@ Integrates with SendGrid (email) and Twilio (SMS).
 """
 
 import logging
-from typing import Dict, List, Optional
 
-from opentelemetry import trace
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Content, Email, Mail, To
 from twilio.rest import Client as TwilioClient
@@ -46,7 +44,7 @@ class NotificationService:
         to_email: str,
         subject: str,
         html_content: str,
-        plain_content: Optional[str] = None,
+        plain_content: str | None = None,
     ) -> bool:
         """
         Send email via SendGrid.
@@ -142,7 +140,7 @@ class NotificationService:
         self,
         customer_email: str,
         customer_name: str,
-        booking_details: Dict[str, any],
+        booking_details: dict[str, any],
     ) -> bool:
         """
         Send booking confirmation email to customer.

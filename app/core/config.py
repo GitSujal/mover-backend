@@ -4,10 +4,9 @@ All settings are type-safe and validated at startup.
 """
 
 from functools import lru_cache
-from typing import Any, List, Optional
+from typing import Any
 
 from pydantic import (
-    AnyHttpUrl,
     EmailStr,
     Field,
     PostgresDsn,
@@ -64,11 +63,11 @@ class Settings(BaseSettings):
 
     # AWS
     AWS_REGION: str = "us-east-1"
-    AWS_ACCESS_KEY_ID: Optional[str] = None
-    AWS_SECRET_ACCESS_KEY: Optional[str] = None
+    AWS_ACCESS_KEY_ID: str | None = None
+    AWS_SECRET_ACCESS_KEY: str | None = None
     S3_BUCKET_NAME: str
     S3_PRESIGNED_URL_EXPIRE_SECONDS: int = Field(default=300, ge=60, le=3600)
-    SQS_QUEUE_URL: Optional[str] = None
+    SQS_QUEUE_URL: str | None = None
 
     # Stripe
     STRIPE_SECRET_KEY: str
@@ -77,18 +76,18 @@ class Settings(BaseSettings):
     PLATFORM_FEE_PERCENTAGE: float = Field(default=5.0, ge=0, le=100)
 
     # Twilio (SMS)
-    TWILIO_ACCOUNT_SID: Optional[str] = None
-    TWILIO_AUTH_TOKEN: Optional[str] = None
-    TWILIO_PHONE_NUMBER: Optional[str] = None
+    TWILIO_ACCOUNT_SID: str | None = None
+    TWILIO_AUTH_TOKEN: str | None = None
+    TWILIO_PHONE_NUMBER: str | None = None
 
     # SendGrid (Email)
-    SENDGRID_API_KEY: Optional[str] = None
+    SENDGRID_API_KEY: str | None = None
     SENDGRID_FROM_EMAIL: EmailStr = "noreply@movehub.com"
     SENDGRID_FROM_NAME: str = "MoveHub"
 
     # OpenTelemetry
     OTEL_SERVICE_NAME: str = "movehub-api"
-    OTEL_EXPORTER_OTLP_ENDPOINT: Optional[str] = "http://localhost:4317"
+    OTEL_EXPORTER_OTLP_ENDPOINT: str | None = "http://localhost:4317"
     OTEL_TRACES_SAMPLER: str = "parentbased_traceidratio"
     OTEL_TRACES_SAMPLER_ARG: float = Field(default=1.0, ge=0.0, le=1.0)
     OTEL_METRICS_EXPORTER: str = "prometheus"
@@ -99,7 +98,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: int = Field(default=60, ge=1)
 
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
     CORS_CREDENTIALS: bool = True
 
     # Booking Configuration
@@ -108,11 +107,11 @@ class Settings(BaseSettings):
 
     # File Upload
     MAX_UPLOAD_SIZE_MB: int = Field(default=10, ge=1, le=100)
-    ALLOWED_UPLOAD_EXTENSIONS: List[str] = [".jpg", ".jpeg", ".png", ".pdf"]
+    ALLOWED_UPLOAD_EXTENSIONS: list[str] = [".jpg", ".jpeg", ".png", ".pdf"]
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v: Any) -> List[str]:
+    def parse_cors_origins(cls, v: Any) -> list[str]:
         """Parse CORS origins from string or list."""
         if isinstance(v, str):
             import json
@@ -122,7 +121,7 @@ class Settings(BaseSettings):
 
     @field_validator("ALLOWED_UPLOAD_EXTENSIONS", mode="before")
     @classmethod
-    def parse_upload_extensions(cls, v: Any) -> List[str]:
+    def parse_upload_extensions(cls, v: Any) -> list[str]:
         """Parse upload extensions from string or list."""
         if isinstance(v, str):
             import json

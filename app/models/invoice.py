@@ -2,10 +2,18 @@
 
 import enum
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
@@ -74,37 +82,37 @@ class Invoice(BaseModel):
         default=InvoiceStatus.DRAFT,
         index=True,
     )
-    paid_at: Mapped[Optional[datetime]] = mapped_column(
+    paid_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
-    payment_method: Mapped[Optional[str]] = mapped_column(
+    payment_method: Mapped[str | None] = mapped_column(
         String(50),
         nullable=True,
     )
 
     # Stripe
-    stripe_invoice_id: Mapped[Optional[str]] = mapped_column(
+    stripe_invoice_id: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
         unique=True,
     )
-    stripe_payment_intent_id: Mapped[Optional[str]] = mapped_column(
+    stripe_payment_intent_id: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
     )
 
     # Dates
-    due_date: Mapped[Optional[datetime]] = mapped_column(
+    due_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
 
     # Notes
-    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # PDF Document
-    pdf_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    pdf_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     # Relationships
     booking: Mapped["Booking"] = relationship("Booking", back_populates="invoice")

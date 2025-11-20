@@ -2,13 +2,12 @@
 
 import enum
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
-    ExcludeConstraint,
     ForeignKey,
     Index,
     Integer,
@@ -17,7 +16,7 @@ from sqlalchemy import (
     Text,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, ExcludeConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
@@ -114,7 +113,7 @@ class Booking(BaseModel):
 
     # Special Items (JSONB for flexibility)
     # Example: ["piano", "antiques", "fragile_items"]
-    special_items: Mapped[List[str]] = mapped_column(
+    special_items: Mapped[list[str]] = mapped_column(
         JSONB,
         nullable=False,
         default=list,
@@ -131,7 +130,7 @@ class Booking(BaseModel):
         Numeric(precision=10, scale=2),
         nullable=False,
     )
-    final_amount: Mapped[Optional[float]] = mapped_column(
+    final_amount: Mapped[float | None] = mapped_column(
         Numeric(precision=10, scale=2),
         nullable=True,
     )
@@ -141,7 +140,7 @@ class Booking(BaseModel):
         Numeric(precision=10, scale=2),
         nullable=False,
     )
-    stripe_payment_intent_id: Mapped[Optional[str]] = mapped_column(
+    stripe_payment_intent_id: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
         unique=True,
@@ -155,8 +154,8 @@ class Booking(BaseModel):
     )
 
     # Notes
-    customer_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    internal_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    customer_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    internal_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
     organization: Mapped["Organization"] = relationship("Organization")

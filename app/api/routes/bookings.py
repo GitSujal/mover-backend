@@ -1,7 +1,6 @@
 """Booking routes for customers and movers."""
 
 import logging
-from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -10,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_current_active_user, get_current_customer_session
 from app.core.database import get_db
 from app.models.booking import BookingStatus
-from app.models.user import User, CustomerSession
+from app.models.user import CustomerSession, User
 from app.schemas.booking import (
     AvailabilityCheck,
     AvailabilityResponse,
@@ -21,7 +20,6 @@ from app.schemas.booking import (
 from app.schemas.pricing import PricingConfigResponse
 from app.services.booking import BookingConflictError, BookingService
 from app.services.notifications import NotificationService
-from app.services.pricing import PricingService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
@@ -52,7 +50,7 @@ async def check_availability(
 async def create_booking(
     booking_data: BookingCreate,
     db: AsyncSession = Depends(get_db),
-    customer: Optional[CustomerSession] = Depends(get_current_customer_session),
+    customer: CustomerSession | None = Depends(get_current_customer_session),
 ) -> BookingResponse:
     """
     Create a new booking (customer endpoint).
@@ -61,7 +59,6 @@ async def create_booking(
     """
     # Get organization's pricing config
     # TODO: Fetch from database - simplified for now
-    from app.schemas.pricing import PricingConfigResponse
 
     pricing_config = PricingConfigResponse(
         id=UUID("00000000-0000-0000-0000-000000000000"),
@@ -108,7 +105,7 @@ async def create_booking(
 async def get_booking(
     booking_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_active_user),
+    current_user: User | None = Depends(get_current_active_user),
 ) -> BookingResponse:
     """
     Get booking details by ID.
@@ -133,15 +130,15 @@ async def get_booking(
     return BookingResponse.model_validate(booking)
 
 
-@router.get("", response_model=List[BookingResponse])
+@router.get("", response_model=list[BookingResponse])
 async def list_bookings(
-    truck_id: Optional[UUID] = Query(None),
-    status_filter: Optional[BookingStatus] = Query(None, alias="status"),
+    truck_id: UUID | None = Query(None),
+    status_filter: BookingStatus | None = Query(None, alias="status"),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
-) -> List[BookingResponse]:
+) -> list[BookingResponse]:
     """
     List bookings for the current organization.
 
