@@ -14,7 +14,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
   // Calculate estimated price (simplified - backend will do actual calculation)
   const baseHourlyRate = 150;
   const baseMileageRate = 2.5;
-  const hourlyC = baseHourlyRate * formData.estimated_duration_hours;
+  const hourlyCost = baseHourlyRate * formData.estimated_duration_hours;
   const mileageCost = baseMileageRate * formData.estimated_distance_miles;
 
   // Stairs surcharge
