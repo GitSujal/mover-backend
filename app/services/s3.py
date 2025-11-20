@@ -68,7 +68,7 @@ class S3Service:
                         max_size_mb = settings.MAX_UPLOAD_SIZE_MB
 
                     max_size_bytes = max_size_mb * 1024 * 1024
-                    conditions.append(["content-length-range", str(0), str(max_size_bytes)])
+                    conditions.append(["content-length-range", 0, max_size_bytes])
 
                     # Generate pre-signed POST
                     response = await s3_client.generate_presigned_post(
