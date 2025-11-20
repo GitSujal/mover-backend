@@ -45,20 +45,25 @@ class PricingService:
 
         # Stairs surcharge
         if rule.type == "stairs":
-            total_flights = booking_details.get("pickup_floors", 0) + booking_details.get(
-                "dropoff_floors", 0
-            )
-            # Only apply if no elevators available
-            has_elevator = booking_details.get("has_elevator_pickup") or booking_details.get(
-                "has_elevator_dropoff"
-            )
+            # Calculate stairs separately for pickup and dropoff
+            pickup_floors = booking_details.get("pickup_floors", 0)
+            dropoff_floors = booking_details.get("dropoff_floors", 0)
+            has_elevator_pickup = booking_details.get("has_elevator_pickup", False)
+            has_elevator_dropoff = booking_details.get("has_elevator_dropoff", False)
 
-            if total_flights > 0 and not has_elevator:
+            # Count flights only at locations without elevators
+            flights_charged = 0
+            if pickup_floors > 0 and not has_elevator_pickup:
+                flights_charged += pickup_floors
+            if dropoff_floors > 0 and not has_elevator_dropoff:
+                flights_charged += dropoff_floors
+
+            if flights_charged > 0:
                 if rule.per_flight and rule.amount:
-                    surcharge = rule.amount * total_flights
+                    surcharge = rule.amount * flights_charged
                     details["applied"] = True
                     details["amount"] = surcharge
-                    details["flights"] = total_flights
+                    details["flights"] = flights_charged
                 elif rule.amount:
                     surcharge = rule.amount
                     details["applied"] = True

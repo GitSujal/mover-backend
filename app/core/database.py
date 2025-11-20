@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.pool import NullPool, QueuePool
+from sqlalchemy.pool import AsyncAdaptedQueuePool, NullPool
 
 from app.core.config import settings
 
@@ -63,8 +63,8 @@ def get_engine() -> AsyncEngine:
 
     if _engine is None:
         # Use NullPool only for testing (no pooling overhead)
-        # QueuePool for all other environments (dev, staging, production)
-        pool_class = NullPool if settings.ENVIRONMENT == "test" else QueuePool
+        # AsyncAdaptedQueuePool for all other environments (dev, staging, production)
+        pool_class = NullPool if settings.ENVIRONMENT == "test" else AsyncAdaptedQueuePool
 
         # Create engine with optimized pool settings
         _engine = create_async_engine(
