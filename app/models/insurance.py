@@ -45,9 +45,7 @@ class InsurancePolicy(BaseModel):
     provider: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # Coverage
-    coverage_amount: Mapped[float] = mapped_column(
-        Numeric(precision=12, scale=2), nullable=False
-    )
+    coverage_amount: Mapped[float] = mapped_column(Numeric(precision=12, scale=2), nullable=False)
 
     # Validity
     effective_date: Mapped[date] = mapped_column(Date, nullable=False)

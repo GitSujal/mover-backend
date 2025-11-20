@@ -98,7 +98,7 @@ async def create_booking(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(e),
-        )
+        ) from e
 
 
 @router.get("/{booking_id}", response_model=BookingResponse)

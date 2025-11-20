@@ -5,13 +5,13 @@ These tests simulate the complete booking workflow as a user would experience it
 ensuring that the frontend and backend are properly integrated.
 """
 
-import pytest
-import asyncio
 from datetime import datetime, timedelta
-from httpx import AsyncClient as HTTPXAsyncClient
+
+import pytest
+
 from app.models.organization import Organization, OrganizationStatus
-from app.models.truck import Truck
 from app.models.pricing import PricingConfig
+from app.models.truck import Truck
 
 
 @pytest.mark.integration
@@ -63,13 +63,9 @@ class TestEndToEndBookingWorkflow:
                     "type": "stairs",
                     "amount": 50.0,
                     "per_flight": True,
-                    "description": "Stairs surcharge"
+                    "description": "Stairs surcharge",
                 },
-                {
-                    "type": "piano",
-                    "amount": 150.0,
-                    "description": "Piano moving"
-                }
+                {"type": "piano", "amount": 150.0, "description": "Piano moving"},
             ],
             is_active=True,
         )
@@ -116,13 +112,12 @@ class TestEndToEndBookingWorkflow:
         }
 
         # Step 2: POST to booking endpoint (what frontend does)
-        create_response = await client.post(
-            "/api/v1/bookings",
-            json=booking_payload
-        )
+        create_response = await client.post("/api/v1/bookings", json=booking_payload)
 
         # Step 3: Verify booking was created successfully
-        assert create_response.status_code == 200, f"Failed to create booking: {create_response.text}"
+        assert (
+            create_response.status_code == 200
+        ), f"Failed to create booking: {create_response.text}"
 
         booking_data = create_response.json()
 
@@ -221,7 +216,7 @@ class TestEndToEndBookingWorkflow:
         # Platform fee (5%): $41
         # Grand total: $861
 
-        print(f"✓ Complex booking created with stairs and special items")
+        print("✓ Complex booking created with stairs and special items")
         print(f"  Booking ID: {booking['id']}")
         print(f"  Stairs surcharge applies to {booking['pickup_floors']} flights")
 

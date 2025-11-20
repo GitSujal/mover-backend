@@ -1,10 +1,11 @@
 """Unit tests for pricing service."""
 
-import pytest
 from datetime import datetime
 
-from app.services.pricing import PricingService
+import pytest
+
 from app.schemas.pricing import PricingConfigResponse, SurchargeRule
+from app.services.pricing import PricingService
 
 
 @pytest.mark.unit
@@ -80,9 +81,7 @@ class TestPricingService:
             base_hourly_rate=150.0,
             base_mileage_rate=2.50,
             minimum_charge=200.0,
-            surcharge_rules=[
-                SurchargeRule(type="stairs", amount=50.0, per_flight=True)
-            ],
+            surcharge_rules=[SurchargeRule(type="stairs", amount=50.0, per_flight=True)],
             is_active=True,
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
@@ -118,9 +117,7 @@ class TestPricingService:
             base_hourly_rate=150.0,
             base_mileage_rate=2.50,
             minimum_charge=200.0,
-            surcharge_rules=[
-                SurchargeRule(type="weekend", multiplier=1.25, days=[0, 6])
-            ],
+            surcharge_rules=[SurchargeRule(type="weekend", multiplier=1.25, days=[0, 6])],
             is_active=True,
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),

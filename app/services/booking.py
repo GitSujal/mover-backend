@@ -7,6 +7,7 @@ Uses PostgreSQL exclusion constraints for atomic conflict detection.
 
 import logging
 from datetime import datetime, timedelta
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import and_, or_, select
@@ -136,9 +137,7 @@ class BookingService:
                 latest_conflict = max(conflicts, key=lambda b: b.effective_end)
                 suggested_start = latest_conflict.effective_end + timedelta(minutes=15)
                 suggested_end = suggested_start + timedelta(hours=duration_hours)
-                suggested_slots.append(
-                    AvailabilitySlot(start=suggested_start, end=suggested_end)
-                )
+                suggested_slots.append(AvailabilitySlot(start=suggested_start, end=suggested_end))
 
             # Record metrics
             duration_ms = (datetime.now() - start_time).total_seconds() * 1000
@@ -170,7 +169,7 @@ class BookingService:
     async def create_booking(
         db: AsyncSession,
         booking_data: BookingCreate,
-        pricing_config: any,  # PricingConfigResponse
+        pricing_config: Any,  # PricingConfigResponse
     ) -> Booking:
         """
         Create a new booking with conflict detection.
@@ -279,7 +278,7 @@ class BookingService:
                     raise BookingConflictError(
                         "This truck is not available for the requested time window. "
                         "Please choose a different time or truck."
-                    )
+                    ) from e
                 raise
 
     @staticmethod

@@ -1,6 +1,5 @@
 """Authentication schemas."""
 
-
 from pydantic import EmailStr, Field
 
 from app.models.user import UserRole

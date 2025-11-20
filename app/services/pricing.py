@@ -80,8 +80,8 @@ class PricingService:
 
         # Time-based surcharges (weekend, after_hours, holiday)
         elif rule.type in ["weekend", "after_hours", "holiday"]:
-            move_date: datetime = booking_details.get("move_date")
-            if not move_date:
+            move_date = booking_details.get("move_date")
+            if not move_date or not isinstance(move_date, datetime):
                 return 0.0, details
 
             # Weekend surcharge

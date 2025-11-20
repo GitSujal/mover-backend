@@ -5,6 +5,7 @@ Handles payment processing with platform fees for marketplace model.
 """
 
 import logging
+from typing import Any
 
 import stripe
 
@@ -212,7 +213,7 @@ class PaymentService:
             span.set_attribute("payment.intent_id", payment_intent_id)
 
             try:
-                refund_params: dict[str, any] = {
+                refund_params: dict[str, Any] = {
                     "payment_intent": payment_intent_id,
                 }
 

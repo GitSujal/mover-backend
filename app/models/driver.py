@@ -46,12 +46,8 @@ class Driver(BaseModel):
     cdl_class: Mapped[str | None] = mapped_column(String(10), nullable=True)  # A, B, C
 
     # Verification
-    is_verified: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, index=True
-    )
-    background_check_completed: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
+    background_check_completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     # Documents
     photo_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
@@ -78,7 +74,4 @@ class Driver(BaseModel):
         return f"{self.first_name} {self.last_name}"
 
     def __repr__(self) -> str:
-        return (
-            f"<Driver(id={self.id}, name={self.full_name}, "
-            f"verified={self.is_verified})>"
-        )
+        return f"<Driver(id={self.id}, name={self.full_name}, " f"verified={self.is_verified})>"

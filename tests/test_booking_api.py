@@ -1,14 +1,14 @@
 """Integration tests for booking API endpoints."""
 
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
 from httpx import AsyncClient
 
-from app.models.booking import BookingStatus
-from app.models.organization import Organization, OrganizationStatus
-from app.models.truck import Truck
 from app.models.driver import Driver
+from app.models.organization import Organization, OrganizationStatus
 from app.models.pricing import PricingConfig
+from app.models.truck import Truck
 
 
 @pytest.mark.integration
@@ -71,9 +71,7 @@ class TestBookingAPI:
             base_hourly_rate=150.0,
             base_mileage_rate=2.50,
             minimum_charge=200.0,
-            surcharge_rules=[
-                {"type": "stairs", "amount": 50.0, "per_flight": True}
-            ],
+            surcharge_rules=[{"type": "stairs", "amount": 50.0, "per_flight": True}],
             is_active=True,
         )
         db_session.add(pricing)
@@ -86,8 +84,6 @@ class TestBookingAPI:
 
     async def test_create_booking_success(self, client: AsyncClient, sample_org_with_truck):
         """Test successful booking creation."""
-        org = sample_org_with_truck["org"]
-
         # Book for tomorrow
         move_date = datetime.utcnow() + timedelta(days=1)
 
@@ -260,8 +256,7 @@ class TestBookingAPI:
 
         # Update status
         update_response = await client.patch(
-            f"/api/v1/bookings/{booking_id}",
-            json={"status": "CONFIRMED"}
+            f"/api/v1/bookings/{booking_id}", json={"status": "CONFIRMED"}
         )
 
         assert update_response.status_code == 200

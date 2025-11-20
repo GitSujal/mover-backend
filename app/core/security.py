@@ -153,8 +153,8 @@ def verify_token(token: str, token_type: str = "access") -> str | None:
             return None
 
         # Get subject
-        subject: str = payload.get("sub")
-        if subject is None:
+        subject = payload.get("sub")
+        if subject is None or not isinstance(subject, str):
             return None
 
         return subject
