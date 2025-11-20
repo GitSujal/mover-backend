@@ -92,6 +92,30 @@ npm run test:watch
 
 # Run tests with coverage
 npm run test:coverage
+
+# Run all CI checks (linting + tests)
+npm run check
+```
+
+### Frontend Linting and Formatting
+
+```bash
+cd frontend
+
+# Check code formatting
+npm run format:check
+
+# Fix code formatting
+npm run format
+
+# Run ESLint
+npm run lint
+
+# Fix ESLint issues
+npm run lint:fix
+
+# TypeScript type checking
+npm run type-check
 ```
 
 ## Test Structure
@@ -167,18 +191,62 @@ Backend tests use pytest markers for organization:
 
 ## Continuous Integration
 
-Tests can be run automatically in CI/CD:
+The CI/CD pipeline runs comprehensive checks on every push and pull request:
 
-```yaml
-# .github/workflows/ci-cd.yml
-test:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Run backend tests
-      run: pytest --cov=app --cov-fail-under=85
+### CI Jobs
 
-    - name: Run frontend tests
-      run: cd frontend && npm test
+1. **Backend Lint and Type Check** (`lint-backend`)
+   - Black formatting check
+   - Ruff linting
+   - MyPy type checking
+
+2. **Frontend Lint and Type Check** (`lint-frontend`)
+   - Prettier formatting check
+   - ESLint linting
+   - TypeScript type checking
+
+3. **Backend Unit Tests** (`test-backend`)
+   - Pytest with coverage (85% minimum)
+   - PostgreSQL + Redis services
+   - Coverage uploaded to Codecov
+
+4. **Frontend Unit Tests** (`test-frontend`)
+   - Jest with coverage
+   - Component and API tests
+   - Coverage uploaded to Codecov
+
+5. **Security Scanning** (`security`)
+   - Bandit security scan
+   - Safety dependency check
+
+6. **Build Docker Images** (`build`)
+   - Backend Docker image (multi-platform)
+   - Frontend Docker image (multi-platform)
+   - Only runs if all linting and tests pass
+
+### Running CI Checks Locally
+
+**Backend:**
+```bash
+# Run all checks (same as CI)
+black --check app/ tests/
+ruff check app/ tests/
+mypy app/
+pytest --cov=app --cov-report=term
+```
+
+**Frontend:**
+```bash
+cd frontend
+
+# Run all checks (same as CI)
+npm run format:check
+npm run lint
+npm run type-check
+npm test
+
+# Or run all at once
+npm run check
 ```
 
 ## Coverage Goals
