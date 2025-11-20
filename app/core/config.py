@@ -41,10 +41,13 @@ class Settings(BaseSettings):
 
     # Database (PostgreSQL with PostGIS)
     DATABASE_URL: PostgresDsn
-    DATABASE_POOL_SIZE: int = Field(default=20, ge=5)
-    DATABASE_MAX_OVERFLOW: int = Field(default=10, ge=0)
+    DATABASE_POOL_SIZE: int = Field(default=20, ge=5, le=100)
+    DATABASE_MAX_OVERFLOW: int = Field(default=10, ge=0, le=50)
     DATABASE_ECHO: bool = False
     DATABASE_POOL_RECYCLE: int = Field(default=3600, ge=300)  # Prevent stale connections
+    DATABASE_POOL_TIMEOUT: int = Field(default=30, ge=5, le=60)  # Connection timeout
+    DATABASE_POOL_PRE_PING: bool = True  # Verify connections before use
+    DATABASE_STATEMENT_TIMEOUT: int = Field(default=30000, ge=1000)  # Statement timeout (ms)
 
     # Redis
     REDIS_URL: RedisDsn
