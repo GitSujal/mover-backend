@@ -4,7 +4,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MoveHub is a production-grade moving companies marketplace backend built with FastAPI, PostgreSQL, AWS, and UV package manager. It connects verified moving companies with customers through a secure, scalable multi-tenant platform.
+MoveHub is a production-grade full-stack moving companies marketplace with a **Next.js 14 TypeScript frontend** and **FastAPI backend**, PostgreSQL, AWS, and UV package manager. It connects verified moving companies with customers through a secure, scalable multi-tenant platform.
+
+**Tech Stack:**
+- **Frontend**: Next.js 14, React 18, TypeScript, TailwindCSS, TanStack Query, Zod
+- **Backend**: FastAPI, PostgreSQL 16 + PostGIS, Redis 7.4, OpenTelemetry
+- **Infrastructure**: Docker Compose (7 services), AWS ECS, Multi-platform builds
+
+## Quick Start (Full Stack)
+
+```bash
+# Start everything with one command
+docker compose up
+
+# Access services
+Frontend:   http://localhost:3000
+Backend:    http://localhost:8000
+API Docs:   http://localhost:8000/docs
+Jaeger:     http://localhost:16686
+Grafana:    http://localhost:3001
+```
 
 ## Essential Commands
 
@@ -56,7 +75,7 @@ make db-reset
 
 ### Docker Services
 ```bash
-# Start PostgreSQL + Redis + observability stack
+# Start all services (PostgreSQL + Redis + Frontend + Backend + Observability)
 docker-compose up -d
 
 # Stop services
@@ -64,9 +83,47 @@ docker-compose down
 
 # View logs
 docker-compose logs -f api
+docker-compose logs -f frontend
 
-# Build Docker image
+# Build Docker images
 docker build -t movehub-api:latest .
+docker build -t movehub-frontend:latest ./frontend
+```
+
+### Frontend Development
+
+```bash
+cd frontend
+
+# Install dependencies
+npm ci
+
+# Start development server (with hot reload)
+npm run dev
+# Frontend runs at http://localhost:3000
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Linting and formatting
+npm run format:check  # Check formatting with Prettier
+npm run format        # Fix formatting
+npm run lint          # ESLint
+npm run lint:fix      # Fix ESLint issues
+
+# Type checking
+npm run type-check    # TypeScript validation
+
+# Testing
+npm test              # Run Jest tests
+npm run test:watch    # Watch mode
+npm run test:coverage # With coverage
+
+# Run all checks (same as CI)
+npm run check         # format:check + lint + type-check + test
 ```
 
 ### Testing
@@ -95,7 +152,7 @@ pytest tests/test_pricing.py::test_function_name -v
 
 ### Code Quality
 ```bash
-# Format code
+# Backend
 black app/ tests/
 ruff --fix app/ tests/
 # Or: make format
@@ -108,6 +165,13 @@ mypy app/
 
 # Run all checks (lint + test)
 make check
+
+# Frontend
+cd frontend
+npm run format        # Prettier formatting
+npm run lint          # ESLint
+npm run type-check    # TypeScript
+npm run check         # Run all checks
 ```
 
 ## Architecture
@@ -171,6 +235,158 @@ make check
 - Traces sent to Jaeger (access at http://localhost:16686)
 - All database queries, HTTP requests, and pricing calculations traced
 - Structured logging with JSON format and trace correlation
+
+## Frontend Architecture
+
+### Tech Stack
+Located in [frontend/](frontend/):
+- **Framework**: Next.js 14 with App Router (React 18)
+- **Language**: TypeScript 5.3 with strict mode
+- **Styling**: TailwindCSS 3.4 with custom components
+- **Forms**: React Hook Form + Zod validation
+- **API Client**: Axios with interceptors
+- **State**: TanStack Query for server state
+- **Testing**: Jest + React Testing Library
+
+### Project Structure
+```
+frontend/
+├── src/
+│   ├── app/              # Next.js App Router pages
+│   │   ├── page.tsx      # Homepage
+│   │   ├── book/         # Booking flow
+│   │   └── booking/[id]/ # Booking confirmation
+│   ├── components/
+│   │   ├── ui/           # Reusable UI components
+│   │   └── booking/      # Booking-specific components
+│   ├── lib/
+│   │   ├── api/          # Type-safe API client
+│   │   ├── validations/  # Zod schemas
+│   │   └── utils.ts      # Utility functions
+│   └── types/            # TypeScript type definitions
+├── __tests__/            # Jest tests
+└── Configuration files
+```
+
+### Key Components
+
+**UI Components** ([frontend/src/components/ui/](frontend/src/components/ui/)):
+- **Button**: Multiple variants (default, secondary, outline, destructive), sizes, loading states
+- **Input**: Text input with error handling
+- **Select**: Dropdown with validation
+- **Textarea**: Multi-line input
+- **Card**: Container components (Card, CardHeader, CardContent, etc.)
+- **Label**: Form labels with required indicator
+
+**Booking Workflow** ([frontend/src/components/booking/](frontend/src/components/booking/)):
+- **booking-form.tsx**: Multi-step form controller (5 steps)
+- **steps/customer-info-step.tsx**: Step 1 - Name, email, phone
+- **steps/pickup-details-step.tsx**: Step 2 - Pickup location, floors, elevator
+- **steps/dropoff-details-step.tsx**: Step 3 - Dropoff location
+- **steps/move-details-step.tsx**: Step 4 - Date, distance, duration, special items
+- **steps/review-step.tsx**: Step 5 - Summary with live price calculation
+
+### Type Safety
+
+**Frontend Types** ([frontend/src/types/booking.ts](frontend/src/types/booking.ts)):
+```typescript
+export interface BookingCreate {
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  move_date: string;  // ISO 8601
+  pickup_address: string;
+  // ... 20+ strictly typed fields
+}
+```
+
+Types mirror backend Pydantic schemas exactly. Any mismatch causes TypeScript compile errors.
+
+**Runtime Validation** ([frontend/src/lib/validations/booking.ts](frontend/src/lib/validations/booking.ts)):
+```typescript
+export const bookingFormSchema = z.object({
+  customer_name: z.string().min(2).max(100),
+  customer_email: z.string().email(),
+  customer_phone: z.string().regex(/^\d{10}$/),
+  move_date: z.string().refine((date) => {
+    return new Date(date) >= new Date();
+  }, 'Move date must be in the future'),
+  // ... complete validation
+});
+```
+
+### API Integration
+
+**Type-Safe Client** ([frontend/src/lib/api/client.ts](frontend/src/lib/api/client.ts)):
+```typescript
+// Axios instance with interceptors
+export const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  timeout: 30000,
+});
+
+// Error handling
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    throw new APIError(error.message, error.response?.status || 0);
+  }
+);
+```
+
+**Booking API** ([frontend/src/lib/api/bookings.ts](frontend/src/lib/api/bookings.ts)):
+```typescript
+export const bookingAPI = {
+  create: async (data: BookingCreate): Promise<BookingResponse> => {
+    const response = await apiClient.post('/api/v1/bookings', data);
+    return response.data;
+  },
+  getById: async (id: string): Promise<BookingResponse> => {
+    const response = await apiClient.get(`/api/v1/bookings/${id}`);
+    return response.data;
+  },
+  // ... more methods
+};
+```
+
+### Styling with TailwindCSS
+
+**Configuration** ([frontend/tailwind.config.ts](frontend/tailwind.config.ts)):
+- Custom color palette
+- Extended spacing and typography
+- Custom animations
+- Responsive breakpoints
+
+**Utility Function** ([frontend/src/lib/utils.ts](frontend/src/lib/utils.ts)):
+```typescript
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+// Merge Tailwind classes safely
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+```
+
+### Frontend Testing
+
+**Component Tests** ([frontend/src/__tests__/components/](frontend/src/__tests__/components/)):
+- Button variants and states
+- Form inputs with validation
+- Loading and error states
+
+**API Client Tests** ([frontend/src/__tests__/lib/](frontend/src/__tests__/lib/)):
+- Request/response structure validation
+- Error handling
+- Type compatibility
+
+**Running Tests**:
+```bash
+cd frontend
+npm test              # Run all tests
+npm run test:watch    # Watch mode
+npm run test:coverage # With coverage report
+```
 
 ## Key Models
 
@@ -326,7 +542,28 @@ async def endpoint(session: CustomerSession = Depends(get_current_customer_sessi
 
 ## Development Workflow
 
-1. **Start services**: `docker-compose up -d`
+### Full-Stack Development
+
+1. **Start all services**: `docker-compose up -d`
+2. **Run migrations**: `make migrate-up`
+3. **Seed database**: `python scripts/seed_data.py`
+4. **Start backend**: `make dev` (port 8000)
+5. **Start frontend**: `cd frontend && npm run dev` (port 3000)
+6. **Make changes**: Both have auto-reload
+7. **Run tests**:
+   - Backend: `pytest`
+   - Frontend: `cd frontend && npm test`
+8. **Format code**:
+   - Backend: `make format`
+   - Frontend: `cd frontend && npm run format`
+9. **Check quality**:
+   - Backend: `make lint`
+   - Frontend: `cd frontend && npm run check`
+10. **Commit changes**: Git workflow
+
+### Backend-Only Development
+
+1. **Start services**: `docker-compose up -d postgres redis`
 2. **Run migrations**: `make migrate-up`
 3. **Start dev server**: `make dev`
 4. **Make changes**: Edit code with auto-reload
@@ -334,13 +571,89 @@ async def endpoint(session: CustomerSession = Depends(get_current_customer_sessi
 6. **Format code**: `make format`
 7. **Check quality**: `make lint`
 8. **Create migration**: `make migrate-create MSG="description"`
-9. **Commit changes**: Git workflow
+
+### Frontend-Only Development
+
+1. **Start backend** (or use staging API): Set `NEXT_PUBLIC_API_URL` in `.env.local`
+2. **Install dependencies**: `cd frontend && npm ci`
+3. **Start dev server**: `npm run dev`
+4. **Make changes**: Edit components with hot reload
+5. **Run tests**: `npm test`
+6. **Format code**: `npm run format`
+7. **Check quality**: `npm run check`
+8. **Build for production**: `npm run build`
+
+### Adding New Features
+
+**Backend API Endpoint**:
+1. Add Pydantic schema in `app/schemas/`
+2. Add route in `app/api/routes/`
+3. Add service logic in `app/services/`
+4. Write tests in `tests/`
+5. Run `make check` to verify
+
+**Frontend Component**:
+1. Add TypeScript types in `src/types/`
+2. Add Zod validation in `src/lib/validations/`
+3. Create component in `src/components/`
+4. Add API method in `src/lib/api/`
+5. Write tests in `src/__tests__/`
+6. Run `npm run check` to verify
+
+**Full-Stack Feature**:
+1. Design TypeScript/Pydantic types (must match!)
+2. Implement backend API
+3. Test backend with pytest
+4. Implement frontend component
+5. Test frontend with Jest
+6. Integration test in `tests/test_e2e_integration.py`
+7. Run both test suites
 
 ## Deployment
 
+### Backend Deployment
 - Docker image built with [Dockerfile](Dockerfile)
 - Multi-stage build for minimal image size
 - AWS ECS Fargate deployment via CDK (infrastructure/aws-cdk/)
 - Environment variables injected via AWS Systems Manager Parameter Store
 - Database migrations run automatically on startup
 - Health checks at `/health` for load balancer
+
+### Frontend Deployment
+- Docker image built with [frontend/Dockerfile](frontend/Dockerfile)
+- Multi-stage build with Next.js standalone output
+- Deployed to AWS ECS or Vercel
+- Environment variables: `NEXT_PUBLIC_API_URL`
+- Static assets served from CDN (CloudFront)
+- SSR with Node.js server
+
+### Docker Compose (All Services)
+```bash
+# Production-like environment locally
+docker-compose up -d
+
+# Services started:
+# 1. postgres (PostgreSQL 16 + PostGIS)
+# 2. redis (Redis 7.4)
+# 3. api (FastAPI backend)
+# 4. frontend (Next.js frontend)
+# 5. jaeger (Distributed tracing)
+# 6. prometheus (Metrics)
+# 7. grafana (Dashboards)
+```
+
+### CI/CD Pipeline
+
+**6 Jobs Run on Every Push/PR**:
+1. **lint-backend**: Black, Ruff, MyPy
+2. **lint-frontend**: Prettier, ESLint, TypeScript
+3. **test-backend**: Pytest (85% coverage required)
+4. **test-frontend**: Jest with coverage
+5. **security**: Bandit + Safety scans
+6. **build**: Docker images for both services (multi-platform)
+
+**Workflow** ([.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml)):
+- All linting and tests must pass before Docker builds
+- Separate Codecov reports for backend and frontend
+- Multi-platform builds (linux/amd64, linux/arm64)
+- Automatic deployment on successful main branch builds

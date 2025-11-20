@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # PostgreSQL with PostGIS
   postgres:
-    image: postgis/postgis:15-3.4
+    image: postgis/postgis:16-3.4
     container_name: movehub-postgres
     environment:
       POSTGRES_USER: movehub
@@ -25,7 +25,7 @@ services:
 
   # Redis
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: movehub-redis
     ports:
       - "6379:6379"
@@ -40,7 +40,7 @@ services:
     networks:
       - movehub-network
 
-  # FastAPI Application
+  # FastAPI Backend
   api:
     build:
       context: .
@@ -72,7 +72,7 @@ services:
       STRIPE_WEBHOOK_SECRET: whsec_your_secret_here
 
       # CORS
-      CORS_ORIGINS: '["http://localhost:3000", "http://localhost:8000"]'
+      CORS_ORIGINS: '["http://localhost:3000", "http://frontend:3000", "http://localhost:8000"]'
 
       # OpenTelemetry
       OTEL_SERVICE_NAME: movehub-api
@@ -93,8 +93,26 @@ services:
     command: >
       sh -c "
         alembic upgrade head &&
+        python scripts/seed_data.py &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
       "
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: movehub-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - movehub-network
+    restart: unless-stopped
 
   # Jaeger (OpenTelemetry tracing)
   jaeger:

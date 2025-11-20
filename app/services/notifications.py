@@ -5,6 +5,7 @@ Integrates with SendGrid (email) and Twilio (SMS).
 """
 
 import logging
+from typing import Any
 
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Content, Email, Mail, To
@@ -140,7 +141,7 @@ class NotificationService:
         self,
         customer_email: str,
         customer_name: str,
-        booking_details: dict[str, any],
+        booking_details: dict[str, Any],
     ) -> bool:
         """
         Send booking confirmation email to customer.

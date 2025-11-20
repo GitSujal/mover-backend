@@ -1,9 +1,17 @@
-# MoveHub - Production-Grade Moving Companies Marketplace Backend
+# MoveHub - Production-Grade Moving Companies Marketplace
 
-A secure, scalable, and maintainable backend for connecting verified moving companies with customers, built with FastAPI, PostgreSQL, AWS, and **UV** (10-100x faster than pip).
+A secure, scalable, and maintainable **full-stack application** connecting verified moving companies with customers. Built with **Next.js 14 + TypeScript** frontend and **FastAPI** backend, PostgreSQL, Redis, and comprehensive CI/CD.
 
 ## 🚀 Features
 
+### Full-Stack
+- **Modern Frontend**: Next.js 14 with TypeScript, TailwindCSS, and Server-Side Rendering
+- **Type-Safe Integration**: TypeScript types mirror Pydantic models exactly
+- **Multi-Step Booking Flow**: 5-step customer journey with real-time validation
+- **Responsive UI**: Mobile-first design with TailwindCSS
+- **Real-Time Updates**: TanStack Query for optimistic updates and caching
+
+### Backend
 - **Multi-tenant Architecture**: Isolated data per organization with Row-Level Security
 - **Conflict-Free Scheduling**: PostgreSQL exclusion constraints prevent double-booking
 - **Dynamic Pricing Engine**: Extensible surcharge rules (time-based, item-based, distance)
@@ -11,86 +19,166 @@ A secure, scalable, and maintainable backend for connecting verified moving comp
 - **Dual Authentication**: JWT for movers, OTP sessions for customers
 - **Production Observability**: OpenTelemetry traces, metrics, and structured logs
 - **AWS-Native**: S3 uploads, SQS queues, RDS PostgreSQL, ElastiCache Redis
-- **Type-Safe**: Strict Pydantic models throughout
+- **Type-Safe**: Strict Pydantic v2 models throughout
+
+### Testing & CI/CD
+- **24 Backend Tests**: Unit, integration, and E2E with 85%+ coverage target
+- **15+ Frontend Tests**: Component and API integration tests
+- **6-Stage CI Pipeline**: Linting, type checking, testing, security scanning, builds
+- **Docker Compose**: One command to start all 7 services locally
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────┐      ┌──────────────┐      ┌─────────────┐
-│  CloudFront │─────▶│     ALB      │─────▶│ ECS Fargate │
-│     CDN     │      │              │      │  (FastAPI)  │
-└─────────────┘      └──────────────┘      └──────┬──────┘
-                                                   │
-                     ┌─────────────────────────────┼──────────────┐
-                     │                             │              │
-                ┌────▼────┐                  ┌─────▼─────┐  ┌────▼────┐
-                │   RDS   │                  │   Redis   │  │   S3    │
-                │PostgreSQL│                  │ElastiCache│  │Uploads  │
-                └─────────┘                  └───────────┘  └─────────┘
+                                ┌─────────────┐
+                                │  CloudFront │
+                                │     CDN     │
+                                └──────┬──────┘
+                                       │
+                        ┌──────────────┴───────────────┐
+                        │                              │
+                  ┌─────▼──────┐               ┌──────▼──────┐
+                  │   Next.js  │               │   FastAPI   │
+                  │  Frontend  │◄─────────────▶│   Backend   │
+                  │ (Port 3000)│   REST API    │ (Port 8000) │
+                  └────────────┘               └──────┬──────┘
+                                                      │
+                                     ┌────────────────┼────────────────┐
+                                     │                │                │
+                              ┌──────▼──────┐  ┌─────▼─────┐  ┌──────▼─────┐
+                              │  PostgreSQL │  │   Redis   │  │     S3     │
+                              │  + PostGIS  │  │  Cache    │  │  Uploads   │
+                              └─────────────┘  └───────────┘  └────────────┘
 ```
+
+### Tech Stack
+
+**Frontend:**
+- Next.js 14 (App Router)
+- React 18
+- TypeScript 5.3 (strict mode)
+- TailwindCSS 3.4
+- TanStack Query (React Query)
+- Zod + React Hook Form
+- Axios
+
+**Backend:**
+- FastAPI (Python 3.11+)
+- PostgreSQL 16 + PostGIS
+- Redis 7.4
+- Pydantic v2
+- SQLAlchemy 2.0+ (async)
+- OpenTelemetry
+
+**Infrastructure:**
+- Docker + Docker Compose
+- AWS ECS Fargate
+- GitHub Actions CI/CD
+- Jaeger (tracing)
+- Prometheus + Grafana
 
 ## 📋 Prerequisites
 
-- Python 3.11+
-- PostgreSQL 15+ with PostGIS extension
-- Redis 7+
-- AWS Account (for production)
-- UV (blazing fast Python package manager)
+**Required:**
+- Docker + Docker Compose (easiest option)
+- **OR** Manual setup:
+  - Python 3.11+
+  - Node.js 20+ (LTS)
+  - PostgreSQL 16+ with PostGIS
+  - Redis 7.4+
+  - UV (blazing fast Python package manager)
 
-## 🛠️ Local Development Setup
+## 🛠️ Quick Start (Recommended)
 
-### 1. Install Dependencies
+### Option 1: Docker Compose (Everything in One Command)
 
 ```bash
-# Install UV (10-100x faster than pip)
+# Clone repository
+git clone <repo-url>
+cd mover-backend
+
+# Start all services (PostgreSQL + Redis + Backend + Frontend + Observability)
+docker compose up
+
+# Access services
+# Frontend:   http://localhost:3000
+# Backend:    http://localhost:8000
+# API Docs:   http://localhost:8000/docs
+# Jaeger:     http://localhost:16686
+# Grafana:    http://localhost:3001
+```
+
+That's it! The application is ready with:
+- ✅ Database migrated
+- ✅ Seed data loaded (3 companies, 6 trucks, 6 drivers)
+- ✅ Backend API running
+- ✅ Frontend app running
+- ✅ All services connected
+
+### Option 2: Manual Setup (Development)
+
+#### Backend Setup
+
+```bash
+# 1. Install UV (10-100x faster than pip)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install project dependencies
+# 2. Install backend dependencies
 uv pip install -e ".[dev,test]"
 
-# Or use make command
-make install-dev
-```
+# 3. Start PostgreSQL + Redis
+docker-compose up -d postgres redis
 
-### 2. Start Services (Docker Compose)
-
-```bash
-docker-compose up -d
-```
-
-### 3. Configure Environment
-
-```bash
+# 4. Configure environment
 cp .env.example .env
-# Edit .env with your local configuration
-```
+# Edit .env with your configuration
 
-### 4. Run Database Migrations
-
-```bash
+# 5. Run migrations
 alembic upgrade head
-```
 
-### 5. Start Development Server
+# 6. Seed database (optional)
+python scripts/seed_data.py
 
-```bash
+# 7. Start backend server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-API will be available at `http://localhost:8000`
-Interactive docs at `http://localhost:8000/docs`
+Backend API: `http://localhost:8000`
+API Docs: `http://localhost:8000/docs`
+
+#### Frontend Setup
+
+```bash
+# 1. Install dependencies
+cd frontend
+npm ci
+
+# 2. Configure environment
+cp .env.example .env.local
+# Edit NEXT_PUBLIC_API_URL if needed (default: http://localhost:8000)
+
+# 3. Start development server
+npm run dev
+```
+
+Frontend: `http://localhost:3000`
 
 ## 🧪 Testing
 
+### Backend Tests (24 tests)
+
 ```bash
-# Run all tests with coverage
+# Run all tests with coverage (85% minimum)
 pytest
 
-# Run only unit tests
+# Run only unit tests (6 tests - fast)
 pytest -m unit
 
-# Run integration tests
+# Run integration tests (11 tests - require DB)
 pytest -m integration
+
+# Run E2E tests (7 tests - full workflow)
+pytest -m e2e
 
 # Run with verbose output
 pytest -v
@@ -98,6 +186,41 @@ pytest -v
 # Generate HTML coverage report
 pytest --cov-report=html
 open htmlcov/index.html
+```
+
+### Frontend Tests (15+ tests)
+
+```bash
+cd frontend
+
+# Run all tests
+npm test
+
+# Run in watch mode
+npm run test:watch
+
+# Run with coverage
+npm run test:coverage
+
+# Run all CI checks (format + lint + type-check + test)
+npm run check
+```
+
+### Full CI Test Suite (Locally)
+
+```bash
+# Backend
+black --check app/ tests/
+ruff check app/ tests/
+mypy app/
+pytest --cov=app
+
+# Frontend
+cd frontend
+npm run format:check
+npm run lint
+npm run type-check
+npm test
 ```
 
 ## 📊 Database Schema

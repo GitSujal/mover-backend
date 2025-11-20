@@ -55,6 +55,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     # Verify database connection
     try:
         from sqlalchemy import text
+
         engine = get_engine()
         async with engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
@@ -118,6 +119,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
 # Custom Middleware
+
 
 @app.middleware("http")
 async def add_request_id(request: Request, call_next):  # type: ignore
@@ -204,6 +206,7 @@ async def rate_limit_middleware(request: Request, call_next):  # type: ignore
 
 
 # Exception Handlers
+
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
@@ -292,6 +295,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 
 # Health Check Endpoints
 
+
 @app.get("/health", tags=["Health"])
 async def health_check() -> dict:
     """
@@ -314,6 +318,7 @@ async def database_health_check() -> dict:
     Verifies database connectivity.
     """
     from sqlalchemy import text
+
     try:
         engine = get_engine()
         async with engine.begin() as conn:
