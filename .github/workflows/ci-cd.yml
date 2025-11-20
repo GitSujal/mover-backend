@@ -8,7 +8,6 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
-  POETRY_VERSION: '1.7.1'
 
 jobs:
   # Linting and Type Checking
@@ -25,26 +24,24 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: ${{ env.POETRY_VERSION }}
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
 
       - name: Install dependencies
         run: |
-          poetry install --with dev
+          uv pip install --system -e ".[dev]"
 
       - name: Run Black (formatting check)
         run: |
-          poetry run black --check app/ tests/
+          black --check app/ tests/
 
       - name: Run Ruff (linting)
         run: |
-          poetry run ruff check app/ tests/
+          ruff check app/ tests/
 
       - name: Run MyPy (type checking)
         run: |
-          poetry run mypy app/
+          mypy app/
 
   # Unit Tests
   test:
@@ -85,14 +82,12 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: ${{ env.POETRY_VERSION }}
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
 
       - name: Install dependencies
         run: |
-          poetry install --with dev,test
+          uv pip install --system -e ".[dev,test]"
 
       - name: Run tests with coverage
         env:
@@ -101,7 +96,7 @@ jobs:
           JWT_SECRET_KEY: test-secret-key-for-ci-minimum-32-characters
           ENVIRONMENT: test
         run: |
-          poetry run pytest --cov=app --cov-report=xml --cov-report=term
+          pytest --cov=app --cov-report=xml --cov-report=term
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3

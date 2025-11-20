@@ -1,4 +1,5 @@
 # Multi-stage production Dockerfile for MoveHub Backend
+# Uses UV for blazing fast dependency installation
 
 # Stage 1: Builder
 FROM python:3.11-slim as builder
@@ -14,16 +15,15 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 - && \
-    ln -s /root/.local/bin/poetry /usr/local/bin/poetry
+# Install UV (extremely fast Python package installer)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Copy dependency files
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml ./
 
-# Install dependencies (no dev dependencies in production)
-RUN poetry config virtualenvs.create false && \
-    poetry install --only main --no-interaction --no-ansi
+# Install dependencies using UV
+# UV is 10-100x faster than pip and handles dependency resolution automatically
+RUN uv pip install --system --no-cache -r pyproject.toml
 
 # Stage 2: Runtime
 FROM python:3.11-slim

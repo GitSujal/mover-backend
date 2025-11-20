@@ -1,6 +1,6 @@
 # MoveHub - Production-Grade Moving Companies Marketplace Backend
 
-A secure, scalable, and maintainable backend for connecting verified moving companies with customers, built with FastAPI, PostgreSQL, and AWS.
+A secure, scalable, and maintainable backend for connecting verified moving companies with customers, built with FastAPI, PostgreSQL, AWS, and **UV** (10-100x faster than pip).
 
 ## 🚀 Features
 
@@ -35,21 +35,21 @@ A secure, scalable, and maintainable backend for connecting verified moving comp
 - PostgreSQL 15+ with PostGIS extension
 - Redis 7+
 - AWS Account (for production)
-- Poetry (package manager)
+- UV (blazing fast Python package manager)
 
 ## 🛠️ Local Development Setup
 
 ### 1. Install Dependencies
 
 ```bash
-# Install Poetry
-curl -sSL https://install.python-poetry.org | python3 -
+# Install UV (10-100x faster than pip)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install project dependencies
-poetry install
+uv pip install -e ".[dev,test]"
 
-# Activate virtual environment
-poetry shell
+# Or use make command
+make install-dev
 ```
 
 ### 2. Start Services (Docker Compose)
@@ -154,6 +154,27 @@ docker build -t movehub-api:latest .
 cd infrastructure/aws-cdk
 npm install
 cdk deploy --all
+```
+
+## ⚡ Why UV?
+
+This project uses **UV** by Astral (creators of Ruff) for package management because it's:
+
+- **10-100x faster** than pip and pip-tools
+- **Deterministic** - same dependencies every time
+- **Drop-in replacement** - works with existing requirements.txt and pyproject.toml
+- **Zero config** - just works out of the box
+- **Rust-powered** - written in Rust for maximum performance
+
+```bash
+# Example: Install all dependencies in ~1 second (vs ~30s with pip)
+uv pip install -e ".[dev,test]"
+
+# Generate lock file
+uv pip compile pyproject.toml -o requirements.txt
+
+# Upgrade all dependencies
+make upgrade
 ```
 
 ## 🔧 Configuration
