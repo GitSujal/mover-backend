@@ -29,7 +29,9 @@ class Settings(BaseSettings):
     # Application
     APP_NAME: str = "MoveHub"
     APP_VERSION: str = "1.0.0"
-    ENVIRONMENT: str = Field(default="development", pattern="^(development|staging|production)$")
+    ENVIRONMENT: str = Field(
+        default="development", pattern="^(development|staging|production|test)$"
+    )
     DEBUG: bool = False
     LOG_LEVEL: str = Field(default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
 
@@ -65,14 +67,14 @@ class Settings(BaseSettings):
     AWS_REGION: str = "us-east-1"
     AWS_ACCESS_KEY_ID: str | None = None
     AWS_SECRET_ACCESS_KEY: str | None = None
-    S3_BUCKET_NAME: str
+    S3_BUCKET_NAME: str = "test-bucket"  # Default for testing
     S3_PRESIGNED_URL_EXPIRE_SECONDS: int = Field(default=300, ge=60, le=3600)
     SQS_QUEUE_URL: str | None = None
 
     # Stripe
-    STRIPE_SECRET_KEY: str
-    STRIPE_PUBLISHABLE_KEY: str
-    STRIPE_WEBHOOK_SECRET: str
+    STRIPE_SECRET_KEY: str = "sk_test_dummy"  # Default for testing
+    STRIPE_PUBLISHABLE_KEY: str = "pk_test_dummy"  # Default for testing
+    STRIPE_WEBHOOK_SECRET: str = "whsec_dummy"  # Default for testing
     PLATFORM_FEE_PERCENTAGE: float = Field(default=5.0, ge=0, le=100)
 
     # Twilio (SMS)
