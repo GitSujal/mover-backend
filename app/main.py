@@ -54,9 +54,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 
     # Verify database connection
     try:
+        from sqlalchemy import text
         engine = get_engine()
         async with engine.begin() as conn:
-            await conn.execute("SELECT 1")  # type: ignore
+            await conn.execute(text("SELECT 1"))
         logger.info("✓ Database connection established")
     except Exception as e:
         logger.error(f"✗ Database connection failed: {e}")
@@ -312,10 +313,11 @@ async def database_health_check() -> dict:
 
     Verifies database connectivity.
     """
+    from sqlalchemy import text
     try:
         engine = get_engine()
         async with engine.begin() as conn:
-            await conn.execute("SELECT 1")  # type: ignore
+            await conn.execute(text("SELECT 1"))
 
         return {"status": "healthy", "database": "connected"}
 
