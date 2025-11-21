@@ -126,9 +126,7 @@ class CancellationService:
             span.set_attribute("cancelled_by", cancelled_by.value)
 
             # Fetch booking
-            result = await db.execute(
-                select(Booking).where(Booking.id == booking_id)
-            )
+            result = await db.execute(select(Booking).where(Booking.id == booking_id))
             booking = result.scalar_one_or_none()
 
             if not booking:
@@ -136,9 +134,7 @@ class CancellationService:
 
             # Check if already cancelled
             if booking.status == BookingStatus.CANCELLED:
-                raise BookingAlreadyCancelledError(
-                    f"Booking {booking_id} is already cancelled"
-                )
+                raise BookingAlreadyCancelledError(f"Booking {booking_id} is already cancelled")
 
             # Check if booking can be cancelled (completed bookings cannot be cancelled)
             if booking.status == BookingStatus.COMPLETED:
@@ -190,9 +186,9 @@ class CancellationService:
                 platform_fee_paid=float(booking.platform_fee),
                 refund_amount=refund_amount,
                 refund_reason=refund_reason,
-                refund_status=RefundStatus.NO_REFUND
-                if refund_amount == 0
-                else RefundStatus.PENDING,
+                refund_status=(
+                    RefundStatus.NO_REFUND if refund_amount == 0 else RefundStatus.PENDING
+                ),
                 customer_name=booking.customer_name,
                 customer_email=booking.customer_email,
                 rebook_offered=rebook_offered,
@@ -208,9 +204,11 @@ class CancellationService:
                     refund = await PaymentService.refund_payment(
                         payment_intent_id=booking.stripe_payment_intent_id,
                         amount=refund_amount,
-                        reason="requested_by_customer"
-                        if cancelled_by == CancellationSource.CUSTOMER
-                        else "fraudulent",
+                        reason=(
+                            "requested_by_customer"
+                            if cancelled_by == CancellationSource.CUSTOMER
+                            else "fraudulent"
+                        ),
                     )
 
                     cancellation.stripe_refund_id = refund.id
@@ -239,9 +237,11 @@ class CancellationService:
                     db=db,
                     booking_id=booking_id,
                     new_status=BookingStatus.CANCELLED,
-                    transitioned_by_type="customer"
-                    if cancelled_by == CancellationSource.CUSTOMER
-                    else cancelled_by.value,
+                    transitioned_by_type=(
+                        "customer"
+                        if cancelled_by == CancellationSource.CUSTOMER
+                        else cancelled_by.value
+                    ),
                     transitioned_by_name=cancelled_by_name,
                     notes=f"Cancellation: {reason}",
                 )
@@ -384,11 +384,9 @@ class CancellationService:
         hours_until_move = (move_date - now).total_seconds() / 3600
         hours_until_move = max(0, hours_until_move)
 
-        current_refund_amount, current_percentage = (
-            CancellationService.calculate_refund_amount(
-                original_amount=original_amount,
-                hours_before_move=hours_until_move,
-            )
+        current_refund_amount, current_percentage = CancellationService.calculate_refund_amount(
+            original_amount=original_amount,
+            hours_before_move=hours_until_move,
         )
 
         return {

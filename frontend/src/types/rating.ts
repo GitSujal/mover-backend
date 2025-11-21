@@ -67,7 +67,7 @@ export interface RatingStats {
   org_id: string;
   summary: RatingSummary;
   recent_ratings: Rating[];
-  rating_trend: "improving" | "stable" | "declining";
+  rating_trend: 'improving' | 'stable' | 'declining';
   response_rate: number;
   average_response_time_hours: number | null;
 }
@@ -77,11 +77,11 @@ export interface MoverResponse {
 }
 
 export const RATING_CATEGORIES = [
-  { key: "professionalism", label: "Professionalism" },
-  { key: "punctuality", label: "Punctuality" },
-  { key: "care_of_items", label: "Care of Items" },
-  { key: "communication", label: "Communication" },
-  { key: "value_for_money", label: "Value for Money" },
+  { key: 'professionalism', label: 'Professionalism' },
+  { key: 'punctuality', label: 'Punctuality' },
+  { key: 'care_of_items', label: 'Care of Items' },
+  { key: 'communication', label: 'Communication' },
+  { key: 'value_for_money', label: 'Value for Money' },
 ] as const;
 
-export type RatingCategory = typeof RATING_CATEGORIES[number]["key"];
+export type RatingCategory = (typeof RATING_CATEGORIES)[number]['key'];

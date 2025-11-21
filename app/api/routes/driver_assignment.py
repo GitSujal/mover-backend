@@ -10,8 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_active_user
 from app.core.database import get_db
-from app.models.booking import Booking
-from app.models.driver import Driver
 from app.models.user import User
 from app.schemas.booking import BookingResponse
 from app.schemas.driver import DriverResponse
@@ -115,7 +113,11 @@ async def auto_assign_driver(
 
     except DriverAssignmentError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND if "not found" in str(e).lower() else status.HTTP_400_BAD_REQUEST,
+            status_code=(
+                status.HTTP_404_NOT_FOUND
+                if "not found" in str(e).lower()
+                else status.HTTP_400_BAD_REQUEST
+            ),
             detail=str(e),
         ) from e
 

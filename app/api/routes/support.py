@@ -39,9 +39,7 @@ async def create_support_ticket(
     Requires customer session authentication.
     """
     # Verify booking belongs to customer
-    booking_result = await db.execute(
-        select(Booking).where(Booking.id == ticket_create.booking_id)
-    )
+    booking_result = await db.execute(select(Booking).where(Booking.id == ticket_create.booking_id))
     booking = booking_result.scalar_one_or_none()
 
     if not booking:

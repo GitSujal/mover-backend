@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.observability import tracer
 from app.models.booking import Booking
 from app.models.driver import Driver
-from app.models.truck import Truck
 
 logger = logging.getLogger(__name__)
 
@@ -82,12 +81,16 @@ class DriverAssignmentService:
 
             # Check driver availability (no overlapping assignments)
             overlapping = await DriverAssignmentService._check_driver_availability(
-                db, driver_id, booking.effective_start, booking.effective_end, exclude_booking_id=booking_id
+                db,
+                driver_id,
+                booking.effective_start,
+                booking.effective_end,
+                exclude_booking_id=booking_id,
             )
 
             if overlapping:
                 raise DriverAssignmentError(
-                    f"Driver already assigned to another booking during this time window"
+                    "Driver already assigned to another booking during this time window"
                 )
 
             # Assign driver
@@ -96,7 +99,7 @@ class DriverAssignmentService:
             await db.refresh(booking)
 
             logger.info(
-                f"Driver assigned to booking",
+                "Driver assigned to booking",
                 extra={
                     "booking_id": str(booking_id),
                     "driver_id": str(driver_id),
@@ -232,7 +235,7 @@ class DriverAssignmentService:
             await db.refresh(booking)
 
             logger.info(
-                f"Driver unassigned from booking",
+                "Driver unassigned from booking",
                 extra={
                     "booking_id": str(booking_id),
                     "previous_driver_id": str(previous_driver_id) if previous_driver_id else None,
@@ -281,7 +284,7 @@ class DriverAssignmentService:
             )
 
             logger.info(
-                f"Driver reassigned",
+                "Driver reassigned",
                 extra={
                     "booking_id": str(booking_id),
                     "old_driver_id": str(old_driver_id) if old_driver_id else None,

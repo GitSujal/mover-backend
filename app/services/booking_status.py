@@ -69,9 +69,7 @@ class BookingStatusService:
         if current_status == new_status:
             return False  # No transition needed
 
-        valid_next_statuses = BookingStatusService.VALID_TRANSITIONS.get(
-            current_status, set()
-        )
+        valid_next_statuses = BookingStatusService.VALID_TRANSITIONS.get(current_status, set())
         return new_status in valid_next_statuses
 
     @staticmethod
@@ -108,9 +106,7 @@ class BookingStatusService:
             span.set_attribute("new_status", new_status.value)
 
             # Fetch booking
-            result = await db.execute(
-                select(Booking).where(Booking.id == booking_id)
-            )
+            result = await db.execute(select(Booking).where(Booking.id == booking_id))
             booking = result.scalar_one_or_none()
 
             if not booking:

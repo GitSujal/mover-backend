@@ -31,12 +31,8 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
 @router.get("/organization/{org_id}/dashboard", response_model=OrganizationDashboard)
 async def get_organization_dashboard(
     org_id: UUID,
-    start_date: datetime = Query(
-        default=None, description="Period start (default: 30 days ago)"
-    ),
-    end_date: datetime = Query(
-        default=None, description="Period end (default: now)"
-    ),
+    start_date: datetime = Query(default=None, description="Period start (default: 30 days ago)"),
+    end_date: datetime = Query(default=None, description="Period end (default: now)"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> OrganizationDashboard:
@@ -150,12 +146,8 @@ async def get_organization_dashboard(
 @router.get("/organization/{org_id}/bookings", response_model=BookingMetrics)
 async def get_booking_metrics(
     org_id: UUID,
-    start_date: datetime = Query(
-        default=None, description="Period start (default: 30 days ago)"
-    ),
-    end_date: datetime = Query(
-        default=None, description="Period end (default: now)"
-    ),
+    start_date: datetime = Query(default=None, description="Period start (default: 30 days ago)"),
+    end_date: datetime = Query(default=None, description="Period end (default: now)"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> BookingMetrics:
@@ -395,12 +387,8 @@ async def get_verification_metrics(
 @router.get("/organization/{org_id}/trends", response_model=TrendData)
 async def get_trend_data(
     org_id: UUID,
-    start_date: datetime = Query(
-        default=None, description="Period start (default: 30 days ago)"
-    ),
-    end_date: datetime = Query(
-        default=None, description="Period end (default: now)"
-    ),
+    start_date: datetime = Query(default=None, description="Period start (default: 30 days ago)"),
+    end_date: datetime = Query(default=None, description="Period end (default: now)"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> TrendData:

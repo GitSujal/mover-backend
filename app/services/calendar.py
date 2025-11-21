@@ -147,9 +147,7 @@ class CalendarService:
             span.set_attribute("driver_id", str(driver_id))
 
             # Get driver
-            driver_result = await db.execute(
-                select(Driver).where(Driver.id == driver_id)
-            )
+            driver_result = await db.execute(select(Driver).where(Driver.id == driver_id))
             driver = driver_result.scalar_one_or_none()
             if not driver:
                 return []
@@ -353,21 +351,15 @@ class CalendarService:
 
             # Get busy driver and truck IDs
             busy_driver_ids = {
-                b.assigned_driver_id
-                for b in conflicting_bookings
-                if b.assigned_driver_id
+                b.assigned_driver_id for b in conflicting_bookings if b.assigned_driver_id
             }
             busy_truck_ids = {
                 b.assigned_truck_id for b in conflicting_bookings if b.assigned_truck_id
             }
 
             # Find available resources
-            available_driver_ids = [
-                d.id for d in all_drivers if d.id not in busy_driver_ids
-            ]
-            available_truck_ids = [
-                t.id for t in all_trucks if t.id not in busy_truck_ids
-            ]
+            available_driver_ids = [d.id for d in all_drivers if d.id not in busy_driver_ids]
+            available_truck_ids = [t.id for t in all_trucks if t.id not in busy_truck_ids]
 
             logger.info(
                 f"Found {len(available_driver_ids)} available drivers, {len(available_truck_ids)} available trucks",
@@ -405,13 +397,11 @@ class CalendarService:
 
             requested_end = date + timedelta(hours=estimated_duration_hours)
 
-            available_drivers, available_trucks = (
-                await CalendarService.find_available_resources(
-                    db=db,
-                    org_id=org_id,
-                    requested_start=date,
-                    requested_end=requested_end,
-                )
+            available_drivers, available_trucks = await CalendarService.find_available_resources(
+                db=db,
+                org_id=org_id,
+                requested_start=date,
+                requested_end=requested_end,
             )
 
             is_available = len(available_drivers) > 0 and len(available_trucks) > 0

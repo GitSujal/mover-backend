@@ -16,9 +16,7 @@ class CancellationRequest(BaseModel):
         min_length=10,
         max_length=1000,
     )
-    cancelled_by: CancellationSource = Field(
-        description="Who is initiating the cancellation"
-    )
+    cancelled_by: CancellationSource = Field(description="Who is initiating the cancellation")
 
 
 class CancellationResponse(BaseModel):

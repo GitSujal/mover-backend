@@ -4,7 +4,7 @@
  * API client for rating and review operations
  */
 
-import axios from "axios";
+import axios from 'axios';
 import type {
   Rating,
   RatingCreate,
@@ -12,9 +12,9 @@ import type {
   RatingStats,
   RatingSummary,
   MoverResponse,
-} from "@/types/rating";
+} from '@/types/rating';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 /**
  * Create API client with session cookie support
@@ -23,7 +23,7 @@ const apiClient = axios.create({
   baseURL: `${API_URL}/api/v1`,
   withCredentials: true, // Include session cookies
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -32,7 +32,7 @@ export const ratingAPI = {
    * Submit a rating for a completed booking
    */
   createRating: async (data: RatingCreate): Promise<Rating> => {
-    const response = await apiClient.post<Rating>("/ratings", data);
+    const response = await apiClient.post<Rating>('/ratings', data);
     return response.data;
   },
 
@@ -60,12 +60,9 @@ export const ratingAPI = {
     page: number = 1,
     limit: number = 20
   ): Promise<RatingListResponse> => {
-    const response = await apiClient.get<RatingListResponse>(
-      `/ratings/organization/${orgId}`,
-      {
-        params: { page, limit },
-      }
-    );
+    const response = await apiClient.get<RatingListResponse>(`/ratings/organization/${orgId}`, {
+      params: { page, limit },
+    });
     return response.data;
   },
 
@@ -73,9 +70,7 @@ export const ratingAPI = {
    * Get aggregate rating summary for an organization
    */
   getOrganizationSummary: async (orgId: string): Promise<RatingSummary> => {
-    const response = await apiClient.get<RatingSummary>(
-      `/ratings/organization/${orgId}/summary`
-    );
+    const response = await apiClient.get<RatingSummary>(`/ratings/organization/${orgId}/summary`);
     return response.data;
   },
 

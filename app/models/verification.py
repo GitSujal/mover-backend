@@ -185,7 +185,9 @@ class ComplianceAlert(BaseModel):
     alert_type: Mapped[str] = mapped_column(
         String(50), nullable=False, index=True
     )  # e.g., 'insurance_expiring', 'license_expired'
-    severity: Mapped[str] = mapped_column(String(20), nullable=False)  # 'info', 'warning', 'critical'
+    severity: Mapped[str] = mapped_column(
+        String(20), nullable=False
+    )  # 'info', 'warning', 'critical'
     message: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Notification

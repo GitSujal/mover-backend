@@ -4,14 +4,13 @@ import logging
 from datetime import datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.observability import tracer
 from app.models.driver import Driver
 from app.models.organization import Organization
 from app.models.verification import DocumentType, DocumentVerification, VerificationStatus
-from app.services.notification_templates import EmailTemplates
 from app.services.notifications import NotificationService
 
 logger = logging.getLogger(__name__)
@@ -218,7 +217,6 @@ class VerificationService:
     ) -> None:
         """Send notification about verification status change."""
         notification_service = NotificationService()
-        email_templates = EmailTemplates()
 
         # Get entity (org or driver)
         if verification.org_id:
@@ -232,9 +230,7 @@ class VerificationService:
             recipient_email = org.contact_email
             recipient_name = org.business_name
         elif verification.driver_id:
-            result = await db.execute(
-                select(Driver).where(Driver.id == verification.driver_id)
-            )
+            result = await db.execute(select(Driver).where(Driver.id == verification.driver_id))
             driver = result.scalar_one_or_none()
             if not driver:
                 return
@@ -323,7 +319,8 @@ class VerificationService:
             rejected_docs = {
                 doc
                 for doc, v in doc_status.items()
-                if v.status in [VerificationStatus.REJECTED, VerificationStatus.RESUBMISSION_REQUIRED]
+                if v.status
+                in [VerificationStatus.REJECTED, VerificationStatus.RESUBMISSION_REQUIRED]
             }
             missing_docs = required_docs - submitted_docs
 
@@ -389,7 +386,8 @@ class VerificationService:
             rejected_docs = {
                 doc
                 for doc, v in doc_status.items()
-                if v.status in [VerificationStatus.REJECTED, VerificationStatus.RESUBMISSION_REQUIRED]
+                if v.status
+                in [VerificationStatus.REJECTED, VerificationStatus.RESUBMISSION_REQUIRED]
             }
             missing_docs = required_docs - submitted_docs
 

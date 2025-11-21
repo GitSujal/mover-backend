@@ -1,7 +1,6 @@
 """Booking cancellation API endpoints."""
 
 import logging
-from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -116,9 +115,7 @@ async def cancel_booking_as_customer(
         ) from e
 
 
-@router.post(
-    "/bookings/{booking_id}/cancel-as-mover", response_model=CancellationResponse
-)
+@router.post("/bookings/{booking_id}/cancel-as-mover", response_model=CancellationResponse)
 async def cancel_booking_as_mover(
     booking_id: UUID,
     cancellation_request: CancellationRequest,
@@ -293,9 +290,7 @@ async def get_cancellation_by_booking(
     Returns null if booking not cancelled.
     """
     result = await db.execute(
-        select(BookingCancellation).where(
-            BookingCancellation.booking_id == booking_id
-        )
+        select(BookingCancellation).where(BookingCancellation.booking_id == booking_id)
     )
     cancellation = result.scalar_one_or_none()
 
@@ -369,9 +364,7 @@ async def list_organization_cancellations(
     from sqlalchemy import func
 
     count_result = await db.execute(
-        select(func.count(BookingCancellation.id)).where(
-            BookingCancellation.org_id == org_id
-        )
+        select(func.count(BookingCancellation.id)).where(BookingCancellation.org_id == org_id)
     )
     total = count_result.scalar_one()
 
@@ -386,9 +379,9 @@ async def list_organization_cancellations(
                 hours_before_move=c.hours_before_move,
                 original_amount=c.original_amount,
                 refund_amount=c.refund_amount,
-                refund_percentage=(c.refund_amount / c.original_amount * 100)
-                if c.original_amount > 0
-                else 0,
+                refund_percentage=(
+                    (c.refund_amount / c.original_amount * 100) if c.original_amount > 0 else 0
+                ),
                 refund_status=c.refund_status,
                 refund_reason=c.refund_reason,
                 stripe_refund_id=c.stripe_refund_id,

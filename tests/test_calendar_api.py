@@ -1,7 +1,8 @@
 """Tests for calendar and fleet management API endpoints."""
 
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
 from httpx import AsyncClient
 
 from app.models.booking import BookingStatus
@@ -72,10 +73,7 @@ class TestCalendarAPI:
 
         assert response.status_code == 200
         data = response.json()
-        assert all(
-            booking["status"] == BookingStatus.PENDING.value
-            for booking in data["bookings"]
-        )
+        assert all(booking["status"] == BookingStatus.PENDING.value for booking in data["bookings"])
 
     async def test_get_calendar_bookings_invalid_date_range(
         self,

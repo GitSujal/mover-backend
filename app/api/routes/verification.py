@@ -383,9 +383,7 @@ async def get_document_verification(
         )
 
     if verification.driver_id:
-        driver_result = await db.execute(
-            select(Driver).where(Driver.id == verification.driver_id)
-        )
+        driver_result = await db.execute(select(Driver).where(Driver.id == verification.driver_id))
         driver = driver_result.scalar_one_or_none()
         if driver and driver.org_id != current_user.org_id:
             # TODO: Check if platform admin
@@ -462,9 +460,11 @@ async def send_expiry_reminders(
                 html_content=email_templates.insurance_expiring(
                     customer_name=recipient_name,
                     document_type=verification.document_type.value,
-                    expiry_date=verification.expiry_date.strftime("%B %d, %Y")
-                    if verification.expiry_date
-                    else "N/A",
+                    expiry_date=(
+                        verification.expiry_date.strftime("%B %d, %Y")
+                        if verification.expiry_date
+                        else "N/A"
+                    ),
                     days_remaining=days_until_expiry,
                 ),
             )
@@ -523,7 +523,9 @@ async def preview_expiring_documents(
                 "verification_id": str(doc.id),
                 "document_type": doc.document_type.value,
                 "expiry_date": doc.expiry_date.strftime("%Y-%m-%d") if doc.expiry_date else None,
-                "days_until_expiry": (doc.expiry_date - datetime.utcnow()).days if doc.expiry_date else 0,
+                "days_until_expiry": (
+                    (doc.expiry_date - datetime.utcnow()).days if doc.expiry_date else 0
+                ),
                 "org_id": str(doc.org_id) if doc.org_id else None,
                 "driver_id": str(doc.driver_id) if doc.driver_id else None,
             }

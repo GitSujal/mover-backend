@@ -104,9 +104,7 @@ class InvoiceService:
             span.set_attribute("booking_id", str(booking_id))
 
             # Fetch booking with organization
-            result = await db.execute(
-                select(Booking).where(Booking.id == booking_id)
-            )
+            result = await db.execute(select(Booking).where(Booking.id == booking_id))
             booking = result.scalar_one_or_none()
 
             if not booking:
@@ -257,9 +255,7 @@ class InvoiceService:
                 ["Invoice Date:", invoice.created_at.strftime("%B %d, %Y")],
                 [
                     "Due Date:",
-                    invoice.due_date.strftime("%B %d, %Y")
-                    if invoice.due_date
-                    else "Upon receipt",
+                    invoice.due_date.strftime("%B %d, %Y") if invoice.due_date else "Upon receipt",
                 ],
                 ["Status:", invoice.status.value.upper()],
             ]
@@ -415,9 +411,7 @@ class InvoiceService:
         """
         with tracer.start_as_current_span("invoice.generate_and_upload_pdf"):
             # Get booking
-            result = await db.execute(
-                select(Booking).where(Booking.id == invoice.booking_id)
-            )
+            result = await db.execute(select(Booking).where(Booking.id == invoice.booking_id))
             booking = result.scalar_one()
 
             # Generate PDF
@@ -460,9 +454,7 @@ class InvoiceService:
         """
         with tracer.start_as_current_span("invoice.send_email"):
             # Get booking
-            result = await db.execute(
-                select(Booking).where(Booking.id == invoice.booking_id)
-            )
+            result = await db.execute(select(Booking).where(Booking.id == invoice.booking_id))
             booking = result.scalar_one()
 
             notification_service = NotificationService()
@@ -472,9 +464,9 @@ class InvoiceService:
                 "booking_id": str(booking.id),
                 "invoice_number": invoice.invoice_number,
                 "total_amount": f"{invoice.total_amount:.2f}",
-                "due_date": invoice.due_date.strftime("%B %d, %Y")
-                if invoice.due_date
-                else "Upon receipt",
+                "due_date": (
+                    invoice.due_date.strftime("%B %d, %Y") if invoice.due_date else "Upon receipt"
+                ),
                 "pdf_url": invoice.pdf_url or "#",
             }
 
@@ -487,9 +479,7 @@ class InvoiceService:
                 ),
             )
 
-            logger.info(
-                f"Invoice email sent: {invoice.invoice_number} to {booking.customer_email}"
-            )
+            logger.info(f"Invoice email sent: {invoice.invoice_number} to {booking.customer_email}")
 
     @staticmethod
     async def mark_invoice_paid(
@@ -509,9 +499,7 @@ class InvoiceService:
             Updated invoice
         """
         with tracer.start_as_current_span("invoice.mark_paid"):
-            result = await db.execute(
-                select(Invoice).where(Invoice.id == invoice_id)
-            )
+            result = await db.execute(select(Invoice).where(Invoice.id == invoice_id))
             invoice = result.scalar_one_or_none()
 
             if not invoice:

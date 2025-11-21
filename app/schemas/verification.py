@@ -13,7 +13,9 @@ class DocumentVerificationCreate(BaseModel):
 
     document_type: DocumentType = Field(description="Type of document")
     document_url: str = Field(description="S3 URL of uploaded document")
-    document_number: str | None = Field(None, description="Document number (license #, policy #, etc.)")
+    document_number: str | None = Field(
+        None, description="Document number (license #, policy #, etc.)"
+    )
     expiry_date: datetime | None = Field(None, description="Document expiration date")
     additional_data: dict = Field(default_factory=dict, description="Additional document metadata")
 
@@ -47,7 +49,9 @@ class DocumentVerificationReview(BaseModel):
 
     status: VerificationStatus = Field(description="New verification status")
     review_notes: str | None = Field(None, description="Admin review notes", max_length=1000)
-    rejection_reason: str | None = Field(None, description="Reason for rejection if rejected", max_length=1000)
+    rejection_reason: str | None = Field(
+        None, description="Reason for rejection if rejected", max_length=1000
+    )
 
 
 class DocumentVerificationListResponse(BaseModel):

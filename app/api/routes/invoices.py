@@ -45,9 +45,7 @@ async def create_invoice(
     """
     try:
         # Verify booking belongs to user's organization
-        result = await db.execute(
-            select(Booking).where(Booking.id == invoice_create.booking_id)
-        )
+        result = await db.execute(select(Booking).where(Booking.id == invoice_create.booking_id))
         booking = result.scalar_one_or_none()
 
         if not booking:
@@ -139,9 +137,7 @@ async def get_invoice(
         )
 
     # Verify invoice belongs to user's organization
-    booking_result = await db.execute(
-        select(Booking).where(Booking.id == invoice.booking_id)
-    )
+    booking_result = await db.execute(select(Booking).where(Booking.id == invoice.booking_id))
     booking = booking_result.scalar_one()
 
     if booking.org_id != current_user.org_id:
@@ -202,9 +198,7 @@ async def get_invoice_by_booking(
         )
 
     # Get invoice
-    result = await db.execute(
-        select(Invoice).where(Invoice.booking_id == booking_id)
-    )
+    result = await db.execute(select(Invoice).where(Invoice.booking_id == booking_id))
     invoice = result.scalar_one_or_none()
 
     if not invoice:
@@ -254,9 +248,7 @@ async def update_invoice(
         )
 
     # Verify invoice belongs to user's organization
-    booking_result = await db.execute(
-        select(Booking).where(Booking.id == invoice.booking_id)
-    )
+    booking_result = await db.execute(select(Booking).where(Booking.id == invoice.booking_id))
     booking = booking_result.scalar_one()
 
     if booking.org_id != current_user.org_id:
@@ -386,9 +378,7 @@ async def list_organization_invoices(
         query = query.where(Invoice.status == status_filter)
 
     # Get total count
-    count_result = await db.execute(
-        select(func.count(Invoice.id)).select_from(query.subquery())
-    )
+    count_result = await db.execute(select(func.count(Invoice.id)).select_from(query.subquery()))
     total = count_result.scalar_one()
 
     # Get page
@@ -448,19 +438,13 @@ async def get_organization_invoice_stats(
         )
 
     # Get all invoices for organization
-    result = await db.execute(
-        select(Invoice)
-        .join(Booking)
-        .where(Booking.org_id == org_id)
-    )
+    result = await db.execute(select(Invoice).join(Booking).where(Booking.org_id == org_id))
     invoices = result.scalars().all()
 
     total_invoices = len(invoices)
     total_revenue = sum(float(inv.total_amount) for inv in invoices)
     paid_invoices = sum(1 for inv in invoices if inv.status == InvoiceStatus.PAID)
-    overdue_invoices = sum(
-        1 for inv in invoices if inv.status == InvoiceStatus.OVERDUE
-    )
+    overdue_invoices = sum(1 for inv in invoices if inv.status == InvoiceStatus.OVERDUE)
     draft_invoices = sum(1 for inv in invoices if inv.status == InvoiceStatus.DRAFT)
 
     average_invoice_amount = total_revenue / total_invoices if total_invoices > 0 else 0

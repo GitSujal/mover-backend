@@ -129,9 +129,9 @@ class TestEndToEndBookingWorkflow:
         create_response = await client.post("/api/v1/bookings", json=booking_payload)
 
         # Step 3: Verify booking was created successfully
-        assert create_response.status_code == 201, (
-            f"Failed to create booking: {create_response.text}"
-        )
+        assert (
+            create_response.status_code == 201
+        ), f"Failed to create booking: {create_response.text}"
 
         booking_data = create_response.json()
 

@@ -4,18 +4,18 @@
  * Form for customers to submit ratings after completing a move
  */
 
-"use client";
+'use client';
 
-import { useState } from "react";
-import { StarRating } from "./StarRating";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { ratingAPI } from "@/lib/api/rating-api";
-import type { RatingCreate, RatingCategory } from "@/types/rating";
-import { RATING_CATEGORIES } from "@/types/rating";
+import { useState } from 'react';
+import { StarRating } from './StarRating';
+import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { ratingAPI } from '@/lib/api/rating-api';
+import type { RatingCreate, RatingCategory } from '@/types/rating';
+import { RATING_CATEGORIES } from '@/types/rating';
 
 interface RatingFormProps {
   bookingId: string;
@@ -32,8 +32,8 @@ export function RatingForm({ bookingId, onSuccess, onError }: RatingFormProps) {
     communication: 0,
     value_for_money: 0,
   });
-  const [reviewTitle, setReviewTitle] = useState("");
-  const [reviewText, setReviewText] = useState("");
+  const [reviewTitle, setReviewTitle] = useState('');
+  const [reviewText, setReviewText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +48,7 @@ export function RatingForm({ bookingId, onSuccess, onError }: RatingFormProps) {
     e.preventDefault();
 
     if (overallRating === 0) {
-      setError("Please provide an overall rating");
+      setError('Please provide an overall rating');
       return;
     }
 
@@ -59,8 +59,7 @@ export function RatingForm({ bookingId, onSuccess, onError }: RatingFormProps) {
       const ratingData: RatingCreate = {
         booking_id: bookingId,
         overall_rating: overallRating,
-        professionalism_rating:
-          categoryRatings.professionalism || undefined,
+        professionalism_rating: categoryRatings.professionalism || undefined,
         punctuality_rating: categoryRatings.punctuality || undefined,
         care_of_items_rating: categoryRatings.care_of_items || undefined,
         communication_rating: categoryRatings.communication || undefined,
@@ -75,8 +74,7 @@ export function RatingForm({ bookingId, onSuccess, onError }: RatingFormProps) {
         onSuccess();
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to submit rating";
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit rating';
       setError(errorMessage);
       if (onError) {
         onError(err instanceof Error ? err : new Error(errorMessage));
@@ -136,9 +134,7 @@ export function RatingForm({ bookingId, onSuccess, onError }: RatingFormProps) {
 
           {/* Review Text */}
           <div className="space-y-2">
-            <Label htmlFor="review-text">
-              Your Review (Optional)
-            </Label>
+            <Label htmlFor="review-text">Your Review (Optional)</Label>
             <Textarea
               id="review-text"
               placeholder="Tell us about your experience..."
@@ -148,17 +144,11 @@ export function RatingForm({ bookingId, onSuccess, onError }: RatingFormProps) {
               maxLength={2000}
               className="resize-none"
             />
-            <p className="text-xs text-gray-500">
-              {reviewText.length} / 2000 characters
-            </p>
+            <p className="text-xs text-gray-500">{reviewText.length} / 2000 characters</p>
           </div>
 
           {/* Error Message */}
-          {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
-              {error}
-            </div>
-          )}
+          {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">{error}</div>}
 
           {/* Submit Button */}
           <div className="flex justify-end gap-2">
@@ -167,7 +157,7 @@ export function RatingForm({ bookingId, onSuccess, onError }: RatingFormProps) {
               disabled={isSubmitting || overallRating === 0}
               className="min-w-[120px]"
             >
-              {isSubmitting ? "Submitting..." : "Submit Rating"}
+              {isSubmitting ? 'Submitting...' : 'Submit Rating'}
             </Button>
           </div>
         </form>

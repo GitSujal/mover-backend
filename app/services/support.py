@@ -9,8 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.observability import tracer
 from app.models.booking import Booking
-from app.models.support import IssueComment, IssueStatus, IssuePriority, IssueType, SupportIssue
-from app.models.user import User
+from app.models.support import IssueComment, IssuePriority, IssueStatus, IssueType, SupportIssue
 from app.services.notification_templates import EmailTemplates
 from app.services.notifications import NotificationService
 
@@ -400,7 +399,9 @@ class SupportTicketService:
             total_in_progress = in_progress_result.scalar_one()
 
             resolved_result = await db.execute(
-                select(func.count(SupportIssue.id)).where(SupportIssue.status == IssueStatus.RESOLVED)
+                select(func.count(SupportIssue.id)).where(
+                    SupportIssue.status == IssueStatus.RESOLVED
+                )
             )
             total_resolved = resolved_result.scalar_one()
 

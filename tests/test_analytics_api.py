@@ -1,7 +1,8 @@
 """Tests for analytics dashboard API endpoints."""
 
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
 from httpx import AsyncClient
 
 pytestmark = pytest.mark.asyncio

@@ -4,13 +4,13 @@
  * Displays a single rating/review with all details
  */
 
-"use client";
+'use client';
 
-import { StarRating } from "./StarRating";
-import { Card, CardContent, CardHeader } from "../ui/card";
-import { Badge } from "../ui/badge";
-import type { Rating } from "@/types/rating";
-import { RATING_CATEGORIES } from "@/types/rating";
+import { StarRating } from './StarRating';
+import { Card, CardContent, CardHeader } from '../ui/card';
+import { Badge } from '../ui/badge';
+import type { Rating } from '@/types/rating';
+import { RATING_CATEGORIES } from '@/types/rating';
 
 interface RatingCardProps {
   rating: Rating;
@@ -18,10 +18,10 @@ interface RatingCardProps {
 }
 
 export function RatingCard({ rating, showMoverResponse = true }: RatingCardProps) {
-  const createdDate = new Date(rating.created_at).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  const createdDate = new Date(rating.created_at).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   });
 
   return (
@@ -45,9 +45,7 @@ export function RatingCard({ rating, showMoverResponse = true }: RatingCardProps
         </div>
 
         {/* Review Title */}
-        {rating.review_title && (
-          <h3 className="text-lg font-semibold">{rating.review_title}</h3>
-        )}
+        {rating.review_title && <h3 className="text-lg font-semibold">{rating.review_title}</h3>}
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -83,18 +81,14 @@ export function RatingCard({ rating, showMoverResponse = true }: RatingCardProps
         {showMoverResponse && rating.mover_response && (
           <div className="mt-4 space-y-2 rounded-lg bg-gray-50 p-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-900">
-                Response from Mover
-              </p>
+              <p className="text-sm font-medium text-gray-900">Response from Mover</p>
               {rating.mover_responded_at && (
                 <p className="text-xs text-gray-500">
                   {new Date(rating.mover_responded_at).toLocaleDateString()}
                 </p>
               )}
             </div>
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">
-              {rating.mover_response}
-            </p>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{rating.mover_response}</p>
           </div>
         )}
       </CardContent>

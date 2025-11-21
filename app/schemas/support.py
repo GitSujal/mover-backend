@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from app.models.support import IssueStatus, IssueType, IssuePriority
+from app.models.support import IssuePriority, IssueStatus, IssueType
 
 
 class SupportIssueCreate(BaseModel):

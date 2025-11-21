@@ -210,6 +210,5 @@ class IssueComment(BaseModel):
 
     def __repr__(self) -> str:
         return (
-            f"<IssueComment(id={self.id}, issue_id={self.issue_id}, "
-            f"author={self.author_name})>"
+            f"<IssueComment(id={self.id}, issue_id={self.issue_id}, " f"author={self.author_name})>"
         )

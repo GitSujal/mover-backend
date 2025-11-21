@@ -337,7 +337,7 @@ class EmailTemplates:
         """Email to mover when they receive a new rating."""
         subject = f"New {data['overall_rating']}★ Rating Received"
 
-        stars = "⭐" * data['overall_rating']
+        stars = "⭐" * data["overall_rating"]
         html = f"""
         <!DOCTYPE html>
         <html>

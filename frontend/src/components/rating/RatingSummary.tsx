@@ -4,11 +4,11 @@
  * Displays aggregate rating statistics with star distribution
  */
 
-"use client";
+'use client';
 
-import { StarRating } from "./StarRating";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import type { RatingSummary as RatingSummaryType } from "@/types/rating";
+import { StarRating } from './StarRating';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import type { RatingSummary as RatingSummaryType } from '@/types/rating';
 
 interface RatingSummaryProps {
   summary: RatingSummaryType;
@@ -45,14 +45,10 @@ export function RatingSummary({ summary, showDetails = true }: RatingSummaryProp
               {average_overall_rating.toFixed(1)}
             </div>
             <div className="mt-1">
-              <StarRating
-                value={average_overall_rating}
-                readonly
-                size="md"
-              />
+              <StarRating value={average_overall_rating} readonly size="md" />
             </div>
             <p className="mt-2 text-sm text-gray-600">
-              {total_ratings} {total_ratings === 1 ? "rating" : "ratings"}
+              {total_ratings} {total_ratings === 1 ? 'rating' : 'ratings'}
             </p>
           </div>
 
@@ -64,7 +60,7 @@ export function RatingSummary({ summary, showDetails = true }: RatingSummaryProp
                 return (
                   <div key={stars} className="flex items-center gap-2">
                     <span className="text-sm text-gray-600 w-12">
-                      {stars} star{stars !== 1 ? "s" : ""}
+                      {stars} star{stars !== 1 ? 's' : ''}
                     </span>
                     <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                       <div
@@ -72,9 +68,7 @@ export function RatingSummary({ summary, showDetails = true }: RatingSummaryProp
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
-                    <span className="text-sm text-gray-600 w-12 text-right">
-                      {count}
-                    </span>
+                    <span className="text-sm text-gray-600 w-12 text-right">{count}</span>
                   </div>
                 );
               })}
@@ -85,16 +79,14 @@ export function RatingSummary({ summary, showDetails = true }: RatingSummaryProp
         {/* Category Averages */}
         {showDetails && (
           <div className="space-y-3 pt-4 border-t">
-            <h4 className="text-sm font-medium text-gray-900">
-              Average Ratings by Category
-            </h4>
+            <h4 className="text-sm font-medium text-gray-900">Average Ratings by Category</h4>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
-                { label: "Professionalism", value: summary.average_professionalism },
-                { label: "Punctuality", value: summary.average_punctuality },
-                { label: "Care of Items", value: summary.average_care_of_items },
-                { label: "Communication", value: summary.average_communication },
-                { label: "Value for Money", value: summary.average_value_for_money },
+                { label: 'Professionalism', value: summary.average_professionalism },
+                { label: 'Punctuality', value: summary.average_punctuality },
+                { label: 'Care of Items', value: summary.average_care_of_items },
+                { label: 'Communication', value: summary.average_communication },
+                { label: 'Value for Money', value: summary.average_value_for_money },
               ].map(({ label, value }) => {
                 if (value === null) return null;
                 return (
@@ -120,9 +112,7 @@ export function RatingSummary({ summary, showDetails = true }: RatingSummaryProp
         {total_ratings === 0 && (
           <div className="text-center py-8">
             <p className="text-gray-500">No ratings yet</p>
-            <p className="text-sm text-gray-400 mt-1">
-              Be the first to leave a review!
-            </p>
+            <p className="text-sm text-gray-400 mt-1">Be the first to leave a review!</p>
           </div>
         )}
       </CardContent>

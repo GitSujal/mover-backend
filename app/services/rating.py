@@ -327,9 +327,7 @@ class RatingService:
             )
 
     @staticmethod
-    async def calculate_rating_trend(
-        db: AsyncSession, org_id: UUID, days: int = 30
-    ) -> str:
+    async def calculate_rating_trend(db: AsyncSession, org_id: UUID, days: int = 30) -> str:
         """
         Calculate rating trend over time.
 

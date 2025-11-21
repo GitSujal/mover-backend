@@ -11,7 +11,6 @@ from app.core.observability import tracer
 from app.models.booking import Booking, BookingStatus
 from app.models.driver import Driver
 from app.models.invoice import Invoice, InvoiceStatus
-from app.models.organization import Organization
 from app.models.rating import Rating
 from app.models.support import IssueStatus, SupportIssue
 from app.models.truck import Truck
@@ -71,17 +70,14 @@ class AnalyticsService:
             total = len(bookings)
             pending = sum(1 for b in bookings if b.status == BookingStatus.PENDING)
             confirmed = sum(1 for b in bookings if b.status == BookingStatus.CONFIRMED)
-            in_progress = sum(
-                1 for b in bookings if b.status == BookingStatus.IN_PROGRESS
-            )
+            in_progress = sum(1 for b in bookings if b.status == BookingStatus.IN_PROGRESS)
             completed = sum(1 for b in bookings if b.status == BookingStatus.COMPLETED)
             cancelled = sum(1 for b in bookings if b.status == BookingStatus.CANCELLED)
 
             # Calculate revenue (completed bookings only)
             completed_bookings = [b for b in bookings if b.status == BookingStatus.COMPLETED]
             total_revenue = sum(
-                float(b.final_amount or b.estimated_amount)
-                for b in completed_bookings
+                float(b.final_amount or b.estimated_amount) for b in completed_bookings
             )
             average_booking_value = (
                 total_revenue / len(completed_bookings) if completed_bookings else 0
@@ -123,9 +119,7 @@ class AnalyticsService:
             span.set_attribute("org_id", str(org_id))
 
             # Get all drivers
-            result = await db.execute(
-                select(Driver).where(Driver.org_id == org_id)
-            )
+            result = await db.execute(select(Driver).where(Driver.org_id == org_id))
             drivers = result.scalars().all()
 
             total = len(drivers)
@@ -145,23 +139,17 @@ class AnalyticsService:
                 )
                 booking_counts[driver.id] = count_result.scalar_one()
 
-            average_bookings = (
-                sum(booking_counts.values()) / len(drivers) if drivers else 0
-            )
+            average_bookings = sum(booking_counts.values()) / len(drivers) if drivers else 0
 
             # Get top performers (top 5 by booking count)
             top_performers = []
-            sorted_drivers = sorted(
-                booking_counts.items(), key=lambda x: x[1], reverse=True
-            )[:5]
+            sorted_drivers = sorted(booking_counts.items(), key=lambda x: x[1], reverse=True)[:5]
 
             for driver_id, count in sorted_drivers:
                 driver = next(d for d in drivers if d.id == driver_id)
                 # Get average rating
                 rating_result = await db.execute(
-                    select(func.avg(Rating.rating)).where(
-                        Rating.driver_id == driver_id
-                    )
+                    select(func.avg(Rating.rating)).where(Rating.driver_id == driver_id)
                 )
                 avg_rating = rating_result.scalar_one() or 0
 
@@ -201,9 +189,7 @@ class AnalyticsService:
             span.set_attribute("org_id", str(org_id))
 
             # Get all trucks
-            result = await db.execute(
-                select(Truck).where(Truck.org_id == org_id)
-            )
+            result = await db.execute(select(Truck).where(Truck.org_id == org_id))
             trucks = result.scalars().all()
 
             total = len(trucks)
@@ -217,9 +203,7 @@ class AnalyticsService:
                 # Get total hours booked across all trucks in last 30 days
                 thirty_days_ago = datetime.utcnow() - timedelta(days=30)
                 booking_result = await db.execute(
-                    select(
-                        func.sum(Booking.estimated_duration_hours)
-                    ).where(
+                    select(func.sum(Booking.estimated_duration_hours)).where(
                         and_(
                             Booking.org_id == org_id,
                             Booking.move_date >= thirty_days_ago,
@@ -265,9 +249,7 @@ class AnalyticsService:
             span.set_attribute("org_id", str(org_id))
 
             # Get all ratings for organization
-            result = await db.execute(
-                select(Rating).where(Rating.org_id == org_id)
-            )
+            result = await db.execute(select(Rating).where(Rating.org_id == org_id))
             ratings = result.scalars().all()
 
             total = len(ratings)
@@ -344,27 +326,24 @@ class AnalyticsService:
 
             # Get all support tickets for organization's bookings
             result = await db.execute(
-                select(SupportIssue)
-                .join(Booking)
-                .where(Booking.org_id == org_id)
+                select(SupportIssue).join(Booking).where(Booking.org_id == org_id)
             )
             tickets = result.scalars().all()
 
             total = len(tickets)
             open_count = sum(1 for t in tickets if t.status == IssueStatus.OPEN)
-            in_progress = sum(
-                1 for t in tickets if t.status == IssueStatus.IN_PROGRESS
-            )
+            in_progress = sum(1 for t in tickets if t.status == IssueStatus.IN_PROGRESS)
             resolved = sum(1 for t in tickets if t.status == IssueStatus.RESOLVED)
             escalated = sum(1 for t in tickets if t.is_escalated)
 
             # Calculate average resolution time
-            resolved_tickets = [t for t in tickets if t.status == IssueStatus.RESOLVED and t.resolved_at]
+            resolved_tickets = [
+                t for t in tickets if t.status == IssueStatus.RESOLVED and t.resolved_at
+            ]
             average_resolution_hours = 0.0
             if resolved_tickets:
                 total_hours = sum(
-                    (t.resolved_at - t.created_at).total_seconds() / 3600
-                    for t in resolved_tickets
+                    (t.resolved_at - t.created_at).total_seconds() / 3600 for t in resolved_tickets
                 )
                 average_resolution_hours = total_hours / len(resolved_tickets)
 
@@ -378,9 +357,7 @@ class AnalyticsService:
             ticket_by_priority = {}
             for ticket in tickets:
                 priority_name = ticket.priority.value
-                ticket_by_priority[priority_name] = (
-                    ticket_by_priority.get(priority_name, 0) + 1
-                )
+                ticket_by_priority[priority_name] = ticket_by_priority.get(priority_name, 0) + 1
 
             return SupportMetrics(
                 total_tickets=total,
@@ -412,11 +389,7 @@ class AnalyticsService:
             span.set_attribute("org_id", str(org_id))
 
             # Get all invoices for organization
-            result = await db.execute(
-                select(Invoice)
-                .join(Booking)
-                .where(Booking.org_id == org_id)
-            )
+            result = await db.execute(select(Invoice).join(Booking).where(Booking.org_id == org_id))
             invoices = result.scalars().all()
 
             total = len(invoices)
@@ -426,7 +399,9 @@ class AnalyticsService:
             overdue = sum(1 for i in invoices if i.status == InvoiceStatus.OVERDUE)
 
             # Calculate revenue
-            total_revenue = sum(float(i.total_amount) for i in invoices if i.status == InvoiceStatus.PAID)
+            total_revenue = sum(
+                float(i.total_amount) for i in invoices if i.status == InvoiceStatus.PAID
+            )
             total_outstanding = sum(
                 float(i.total_amount)
                 for i in invoices
@@ -471,21 +446,15 @@ class AnalyticsService:
 
             # Get all verifications for organization
             result = await db.execute(
-                select(DocumentVerification).where(
-                    DocumentVerification.org_id == org_id
-                )
+                select(DocumentVerification).where(DocumentVerification.org_id == org_id)
             )
             verifications = result.scalars().all()
 
-            pending = sum(
-                1 for v in verifications if v.status == VerificationStatus.PENDING
-            )
+            pending = sum(1 for v in verifications if v.status == VerificationStatus.PENDING)
             under_review = sum(
                 1 for v in verifications if v.status == VerificationStatus.UNDER_REVIEW
             )
-            approved = sum(
-                1 for v in verifications if v.status == VerificationStatus.APPROVED
-            )
+            approved = sum(1 for v in verifications if v.status == VerificationStatus.APPROVED)
             rejected = sum(
                 1
                 for v in verifications
@@ -495,9 +464,7 @@ class AnalyticsService:
                     VerificationStatus.RESUBMISSION_REQUIRED,
                 ]
             )
-            expired = sum(
-                1 for v in verifications if v.status == VerificationStatus.EXPIRED
-            )
+            expired = sum(1 for v in verifications if v.status == VerificationStatus.EXPIRED)
 
             # Count expiring soon (30 days)
             thirty_days_from_now = datetime.utcnow() + timedelta(days=30)
@@ -572,9 +539,7 @@ class AnalyticsService:
                 # Revenue for this day (completed bookings)
                 revenue_result = await db.execute(
                     select(
-                        func.sum(
-                            func.coalesce(Booking.final_amount, Booking.estimated_amount)
-                        )
+                        func.sum(func.coalesce(Booking.final_amount, Booking.estimated_amount))
                     ).where(
                         and_(
                             Booking.org_id == org_id,

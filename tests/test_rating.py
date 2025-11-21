@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.booking import Booking, BookingStatus
 from app.models.organization import Organization, OrganizationStatus
-from app.models.rating import Rating, RatingSummary
 from app.models.truck import Truck
 from app.models.user import CustomerSession
 from app.services.rating import (
@@ -475,9 +474,7 @@ class TestRatingAPI:
         # but demonstrates the expected structure
         assert response.status_code in [201, 401]  # 401 if session not properly mocked
 
-    async def test_list_organization_ratings(
-        self, client: AsyncClient, db_session: AsyncSession
-    ):
+    async def test_list_organization_ratings(self, client: AsyncClient, db_session: AsyncSession):
         """Test listing ratings for an organization."""
         org_id = uuid4()
 

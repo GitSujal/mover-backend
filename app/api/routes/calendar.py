@@ -1,7 +1,7 @@
 """Calendar and fleet management API endpoints."""
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -31,9 +31,7 @@ router = APIRouter(prefix="/calendar", tags=["Calendar"])
 async def get_calendar_bookings(
     start_date: datetime = Query(..., description="Start date (ISO format)"),
     end_date: datetime = Query(..., description="End date (ISO format)"),
-    status_filter: list[BookingStatus] | None = Query(
-        None, description="Filter by status"
-    ),
+    status_filter: list[BookingStatus] | None = Query(None, description="Filter by status"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> CalendarViewResponse:
@@ -134,9 +132,7 @@ async def get_driver_schedule(
     )
 
     # Calculate total hours
-    total_hours = sum(
-        (item.end_time - item.start_time).total_seconds() / 3600 for item in schedule
-    )
+    total_hours = sum((item.end_time - item.start_time).total_seconds() / 3600 for item in schedule)
 
     logger.info(
         f"Driver schedule retrieved by {current_user.email}",
@@ -203,9 +199,7 @@ async def get_truck_schedule(
     )
 
     # Calculate total hours
-    total_hours = sum(
-        (item.end_time - item.start_time).total_seconds() / 3600 for item in schedule
-    )
+    total_hours = sum((item.end_time - item.start_time).total_seconds() / 3600 for item in schedule)
 
     logger.info(
         f"Truck schedule retrieved by {current_user.email}",
@@ -270,15 +264,11 @@ async def get_fleet_calendar(
     )
 
     # Get all drivers
-    driver_result = await db.execute(
-        select(Driver).where(Driver.org_id == current_user.org_id)
-    )
+    driver_result = await db.execute(select(Driver).where(Driver.org_id == current_user.org_id))
     drivers = driver_result.scalars().all()
 
     # Get all trucks
-    truck_result = await db.execute(
-        select(Truck).where(Truck.org_id == current_user.org_id)
-    )
+    truck_result = await db.execute(select(Truck).where(Truck.org_id == current_user.org_id))
     trucks = truck_result.scalars().all()
 
     # Get schedules for all drivers
@@ -291,8 +281,7 @@ async def get_fleet_calendar(
             end_date=end_date,
         )
         total_hours = sum(
-            (item.end_time - item.start_time).total_seconds() / 3600
-            for item in schedule
+            (item.end_time - item.start_time).total_seconds() / 3600 for item in schedule
         )
         driver_schedules.append(
             DriverScheduleResponse(
@@ -316,8 +305,7 @@ async def get_fleet_calendar(
             end_date=end_date,
         )
         total_hours = sum(
-            (item.end_time - item.start_time).total_seconds() / 3600
-            for item in schedule
+            (item.end_time - item.start_time).total_seconds() / 3600 for item in schedule
         )
         truck_schedules.append(
             TruckScheduleResponse(
