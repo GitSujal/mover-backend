@@ -1,6 +1,7 @@
 """Database models."""
 
 from app.models.booking import Booking
+from app.models.booking_status_history import BookingStatusHistory
 from app.models.cancellation import BookingCancellation
 from app.models.driver import Driver
 from app.models.insurance import InsurancePolicy
@@ -20,6 +21,7 @@ __all__ = [
     "Driver",
     "PricingConfig",
     "Booking",
+    "BookingStatusHistory",
     "Invoice",
     "User",
     "CustomerSession",
