@@ -1,6 +1,7 @@
 """Pytest configuration and fixtures."""
 
 import asyncio
+import os
 from collections.abc import AsyncGenerator, Generator
 from datetime import UTC
 
@@ -19,7 +20,10 @@ from app.main import app
 from app.models.base import Base
 
 # Test database URL
-TEST_DATABASE_URL = "postgresql+asyncpg://movehub:movehub_dev_password@localhost:5432/movehub_test"
+TEST_DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+asyncpg://movehub:movehub_dev_password@localhost:5432/movehub_test",
+)
 
 
 @pytest.fixture(scope="session")
