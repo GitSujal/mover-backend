@@ -57,7 +57,7 @@ class S3Service:
             try:
                 async with self.session.client("s3") as s3_client:
                     # Build conditions
-                    conditions = [
+                    conditions: list[Any] = [
                         {"bucket": self.bucket_name},
                         ["starts-with", "$key", file_key.rsplit("/", 1)[0] + "/"],
                         {"Content-Type": content_type},

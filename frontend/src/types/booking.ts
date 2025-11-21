@@ -3,12 +3,7 @@
  * These are strongly typed to ensure type safety across the application
  */
 
-export type BookingStatus =
-  | 'PENDING'
-  | 'CONFIRMED'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'CANCELLED';
+export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
 export interface BookingBase {
   customer_name: string;

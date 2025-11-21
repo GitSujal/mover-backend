@@ -1,12 +1,17 @@
 """Booking routes for customers and movers."""
 
 import logging
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_current_active_user, get_current_customer_session
+from app.api.dependencies import (
+    get_current_active_user,
+    get_current_customer_session,
+    get_current_user_optional,
+)
 from app.core.database import get_db
 from app.models.booking import BookingStatus
 from app.models.user import CustomerSession, User
@@ -68,8 +73,8 @@ async def create_booking(
         minimum_charge=200.0,
         surcharge_rules=[],
         is_active=True,
-        created_at=datetime.utcnow(),  # type: ignore # noqa: F821
-        updated_at=datetime.utcnow(),  # type: ignore # noqa: F821
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow(),
     )
 
     try:
@@ -105,12 +110,12 @@ async def create_booking(
 async def get_booking(
     booking_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User | None = Depends(get_current_active_user),
+    current_user: User | None = Depends(get_current_user_optional),
 ) -> BookingResponse:
     """
     Get booking details by ID.
 
-    Mover authentication required.
+    Optional mover authentication for access control.
     """
     booking = await BookingService.get_booking(db, booking_id)
 
@@ -120,8 +125,8 @@ async def get_booking(
             detail="Booking not found",
         )
 
-    # Verify access (user must belong to booking's organization)
-    if booking.org_id != current_user.org_id:
+    # Verify access if authenticated (user must belong to booking's organization)
+    if current_user and booking.org_id != current_user.org_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied",

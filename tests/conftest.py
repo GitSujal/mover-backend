@@ -5,13 +5,17 @@ from collections.abc import AsyncGenerator, Generator
 
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
-from app.core.database import Base, get_db
+# Import all models to ensure tables are created
+from app import models  # noqa: F401
+from app.core.database import get_db
 from app.main import app
+from app.models.base import Base
 
 # Test database URL
 TEST_DATABASE_URL = "postgresql+asyncpg://movehub:test_password@localhost:5432/movehub_test"
@@ -34,13 +38,23 @@ async def db_engine():
         poolclass=NullPool,
     )
 
-    # Create all tables
+    # Drop all tables and types (including ENUMs) before creating fresh schema
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        # Drop all custom types (ENUMs) that might persist
+        await conn.execute(text("DROP TYPE IF EXISTS organizationstatus CASCADE"))
+        await conn.execute(text("DROP TYPE IF EXISTS bookingstatus CASCADE"))
+        await conn.execute(text("DROP TYPE IF EXISTS userrole CASCADE"))
+        await conn.execute(text("DROP TYPE IF EXISTS insurancetype CASCADE"))
+        await conn.commit()
+
+    # Create all tables fresh
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine
 
-    # Drop all tables
+    # Clean up after test
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
@@ -70,7 +84,7 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 
     app.dependency_overrides[get_db] = override_get_db
 
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
     app.dependency_overrides.clear()

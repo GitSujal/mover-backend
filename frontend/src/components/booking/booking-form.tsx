@@ -29,7 +29,7 @@ export function BookingForm() {
   const [currentStep, setCurrentStep] = useState(0);
 
   const form = useForm<BookingFormData>({
-    resolver: zodResolver(bookingSchema),
+    resolver: zodResolver(bookingFormSchema),
     mode: 'onChange',
     defaultValues: {
       customer_name: '',
@@ -107,8 +107,8 @@ export function BookingForm() {
                         index < currentStep
                           ? 'bg-primary-600 border-primary-600'
                           : index === currentStep
-                          ? 'border-primary-600 bg-white text-primary-600'
-                          : 'border-gray-300 bg-white text-gray-400'
+                            ? 'border-primary-600 bg-white text-primary-600'
+                            : 'border-gray-300 bg-white text-gray-400'
                       )}
                     >
                       {index < currentStep ? (

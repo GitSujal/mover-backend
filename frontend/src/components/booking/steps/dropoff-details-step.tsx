@@ -21,12 +21,8 @@ export function DropoffDetailsStep({ form }: DropoffDetailsStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Dropoff Location
-        </h2>
-        <p className="text-gray-600">
-          Where are we delivering your items?
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Dropoff Location</h2>
+        <p className="text-gray-600">Where are we delivering your items?</p>
       </div>
 
       <div className="space-y-4">
@@ -107,9 +103,7 @@ export function DropoffDetailsStep({ form }: DropoffDetailsStepProps) {
             </div>
 
             <div>
-              <Label htmlFor="has_elevator_dropoff">
-                Elevator Available?
-              </Label>
+              <Label htmlFor="has_elevator_dropoff">Elevator Available?</Label>
               <div className="mt-2">
                 <label className="inline-flex items-center">
                   <input
@@ -117,15 +111,11 @@ export function DropoffDetailsStep({ form }: DropoffDetailsStepProps) {
                     {...register('has_elevator_dropoff')}
                     className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700">
-                    {hasElevator ? 'Yes' : 'No'}
-                  </span>
+                  <span className="ml-2 text-sm text-gray-700">{hasElevator ? 'Yes' : 'No'}</span>
                 </label>
               </div>
               {!hasElevator && (
-                <p className="mt-1 text-xs text-amber-600">
-                  Stairs surcharge may apply
-                </p>
+                <p className="mt-1 text-xs text-amber-600">Stairs surcharge may apply</p>
               )}
             </div>
           </div>

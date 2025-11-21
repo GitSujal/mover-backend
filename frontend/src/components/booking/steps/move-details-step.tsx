@@ -39,12 +39,8 @@ export function MoveDetailsStep({ form }: MoveDetailsStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Move Details
-        </h2>
-        <p className="text-gray-600">
-          Tell us when and what you're moving
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Move Details</h2>
+        <p className="text-gray-600">Tell us when and what you&apos;re moving</p>
       </div>
 
       <div className="space-y-4">
@@ -79,9 +75,7 @@ export function MoveDetailsStep({ form }: MoveDetailsStepProps) {
               placeholder="10"
               error={errors.estimated_distance_miles?.message}
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Approximate distance between locations
-            </p>
+            <p className="mt-1 text-xs text-gray-500">Approximate distance between locations</p>
           </div>
 
           <div>
@@ -98,9 +92,7 @@ export function MoveDetailsStep({ form }: MoveDetailsStepProps) {
               placeholder="4"
               error={errors.estimated_duration_hours?.message}
             />
-            <p className="mt-1 text-xs text-gray-500">
-              How long do you think it will take?
-            </p>
+            <p className="mt-1 text-xs text-gray-500">How long do you think it will take?</p>
           </div>
         </div>
 
@@ -111,19 +103,19 @@ export function MoveDetailsStep({ form }: MoveDetailsStepProps) {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {SPECIAL_ITEMS.map((item) => {
-              const isSelected = specialItems.includes(item);
+              const isSelected = specialItems.includes(item.value);
               return (
                 <button
-                  key={item}
+                  key={item.value}
                   type="button"
-                  onClick={() => toggleSpecialItem(item)}
+                  onClick={() => toggleSpecialItem(item.value)}
                   className={`px-4 py-2 rounded-md border-2 text-sm font-medium transition-colors ${
                     isSelected
                       ? 'border-primary-600 bg-primary-50 text-primary-700'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                   }`}
                 >
-                  {item.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                  {item.label}
                 </button>
               );
             })}
@@ -136,9 +128,7 @@ export function MoveDetailsStep({ form }: MoveDetailsStepProps) {
         </div>
 
         <div>
-          <Label htmlFor="customer_notes">
-            Additional Notes (Optional)
-          </Label>
+          <Label htmlFor="customer_notes">Additional Notes (Optional)</Label>
           <Textarea
             id="customer_notes"
             {...register('customer_notes')}
@@ -146,9 +136,7 @@ export function MoveDetailsStep({ form }: MoveDetailsStepProps) {
             rows={4}
             error={errors.customer_notes?.message}
           />
-          <p className="mt-1 text-xs text-gray-500">
-            Maximum 1000 characters
-          </p>
+          <p className="mt-1 text-xs text-gray-500">Maximum 1000 characters</p>
         </div>
       </div>
     </div>

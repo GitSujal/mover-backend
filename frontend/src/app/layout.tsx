@@ -10,11 +10,7 @@ export const metadata: Metadata = {
   description: 'Book verified moving companies with transparent pricing and real-time tracking',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${inter.className} bg-background text-foreground`}>

@@ -6,10 +6,9 @@ import Link from 'next/link';
 import { bookingAPI } from '@/lib/api/booking-api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency, formatDateTime, formatPhoneNumber } from '@/lib/utils';
+import { formatDateTime, formatPhoneNumber } from '@/lib/utils';
 import {
   CheckCircle,
-  Clock,
   MapPin,
   Package,
   Truck,
@@ -27,7 +26,11 @@ interface BookingPageProps {
 export default function BookingPage({ params }: BookingPageProps) {
   const { id } = use(params);
 
-  const { data: booking, isLoading, error } = useQuery({
+  const {
+    data: booking,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['booking', id],
     queryFn: () => bookingAPI.getBooking(id),
   });
@@ -50,11 +53,9 @@ export default function BookingPage({ params }: BookingPageProps) {
           <CardContent className="pt-6">
             <div className="text-center">
               <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
-                Booking Not Found
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Booking Not Found</h2>
               <p className="text-gray-600 mb-6">
-                We couldn't find the booking you're looking for.
+                We couldn&apos;t find the booking you&apos;re looking for.
               </p>
               <Link href="/">
                 <Button>Back to Home</Button>
@@ -93,9 +94,7 @@ export default function BookingPage({ params }: BookingPageProps) {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Booking Confirmed!
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Booking Confirmed!</h1>
               <p className="text-gray-600">
                 Booking ID: <span className="font-mono text-sm">{booking.id}</span>
               </p>
@@ -106,7 +105,7 @@ export default function BookingPage({ params }: BookingPageProps) {
           <div className="flex items-center gap-2 text-green-700 bg-green-50 p-4 rounded-lg">
             <CheckCircle className="h-5 w-5 flex-shrink-0" />
             <p className="text-sm">
-              Your booking has been confirmed! We've sent a confirmation email to{' '}
+              Your booking has been confirmed! We&apos;ve sent a confirmation email to{' '}
               <strong>{booking.customer_email}</strong>
             </p>
           </div>
@@ -124,22 +123,16 @@ export default function BookingPage({ params }: BookingPageProps) {
             <CardContent className="space-y-4">
               <div>
                 <div className="text-sm text-gray-500">Move Date</div>
-                <div className="text-lg font-semibold">
-                  {formatDateTime(booking.move_date)}
-                </div>
+                <div className="text-lg font-semibold">{formatDateTime(booking.move_date)}</div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-500">Distance</div>
-                  <div className="font-semibold">
-                    {booking.estimated_distance_miles} miles
-                  </div>
+                  <div className="font-semibold">{booking.estimated_distance_miles} miles</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Duration</div>
-                  <div className="font-semibold">
-                    {booking.estimated_duration_hours} hours
-                  </div>
+                  <div className="font-semibold">{booking.estimated_duration_hours} hours</div>
                 </div>
               </div>
             </CardContent>
@@ -155,23 +148,23 @@ export default function BookingPage({ params }: BookingPageProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <div className="text-sm font-medium text-green-700 mb-1">
-                  Pickup Location
-                </div>
+                <div className="text-sm font-medium text-green-700 mb-1">Pickup Location</div>
                 <div className="text-gray-700">
-                  {booking.pickup_address}<br />
-                  {booking.pickup_city}, {booking.pickup_state} {booking.pickup_zip}<br />
+                  {booking.pickup_address}
+                  <br />
+                  {booking.pickup_city}, {booking.pickup_state} {booking.pickup_zip}
+                  <br />
                   Floor {booking.pickup_floors}
                   {booking.has_elevator_pickup ? ' (Elevator Available)' : ' (Stairs)'}
                 </div>
               </div>
               <div className="border-t pt-4">
-                <div className="text-sm font-medium text-blue-700 mb-1">
-                  Dropoff Location
-                </div>
+                <div className="text-sm font-medium text-blue-700 mb-1">Dropoff Location</div>
                 <div className="text-gray-700">
-                  {booking.dropoff_address}<br />
-                  {booking.dropoff_city}, {booking.dropoff_state} {booking.dropoff_zip}<br />
+                  {booking.dropoff_address}
+                  <br />
+                  {booking.dropoff_city}, {booking.dropoff_state} {booking.dropoff_zip}
+                  <br />
                   Floor {booking.dropoff_floors}
                   {booking.has_elevator_dropoff ? ' (Elevator Available)' : ' (Stairs)'}
                 </div>
@@ -191,11 +184,10 @@ export default function BookingPage({ params }: BookingPageProps) {
               <CardContent className="space-y-4">
                 {booking.driver && (
                   <div>
-                    <div className="text-sm font-medium text-primary-700 mb-2">
-                      Driver
-                    </div>
+                    <div className="text-sm font-medium text-primary-700 mb-2">Driver</div>
                     <div className="flex items-center gap-4">
                       {booking.driver.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={booking.driver.photo_url}
                           alt={`${booking.driver.first_name} ${booking.driver.last_name}`}
@@ -221,9 +213,7 @@ export default function BookingPage({ params }: BookingPageProps) {
 
                 {booking.truck && (
                   <div className="border-t pt-4">
-                    <div className="text-sm font-medium text-primary-700 mb-2">
-                      Vehicle
-                    </div>
+                    <div className="text-sm font-medium text-primary-700 mb-2">Vehicle</div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <div className="text-gray-600">Make & Model</div>
@@ -233,9 +223,7 @@ export default function BookingPage({ params }: BookingPageProps) {
                       </div>
                       <div>
                         <div className="text-gray-600">License Plate</div>
-                        <div className="font-semibold font-mono">
-                          {booking.truck.license_plate}
-                        </div>
+                        <div className="font-semibold font-mono">{booking.truck.license_plate}</div>
                       </div>
                       <div>
                         <div className="text-gray-600">Capacity</div>
@@ -286,16 +274,11 @@ export default function BookingPage({ params }: BookingPageProps) {
               <CardContent className="space-y-3">
                 {booking.special_items.length > 0 && (
                   <div>
-                    <div className="text-sm font-medium text-gray-700 mb-1">
-                      Special Items
-                    </div>
+                    <div className="text-sm font-medium text-gray-700 mb-1">Special Items</div>
                     <div className="flex flex-wrap gap-2">
                       {booking.special_items.map((item) => (
-                        <span
-                          key={item}
-                          className="px-3 py-1 bg-gray-100 rounded-full text-sm"
-                        >
-                          {item.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        <span key={item} className="px-3 py-1 bg-gray-100 rounded-full text-sm">
+                          {item.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                         </span>
                       ))}
                     </div>
@@ -303,11 +286,9 @@ export default function BookingPage({ params }: BookingPageProps) {
                 )}
                 {booking.customer_notes && (
                   <div>
-                    <div className="text-sm font-medium text-gray-700 mb-1">
-                      Notes
-                    </div>
+                    <div className="text-sm font-medium text-gray-700 mb-1">Notes</div>
                     <div className="text-sm text-gray-600 italic">
-                      "{booking.customer_notes}"
+                      &ldquo;{booking.customer_notes}&rdquo;
                     </div>
                   </div>
                 )}
@@ -322,11 +303,7 @@ export default function BookingPage({ params }: BookingPageProps) {
                 Back to Home
               </Button>
             </Link>
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={() => window.print()}
-            >
+            <Button variant="secondary" className="flex-1" onClick={() => window.print()}>
               Print Confirmation
             </Button>
           </div>

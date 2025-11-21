@@ -14,7 +14,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
   // Calculate estimated price (simplified - backend will do actual calculation)
   const baseHourlyRate = 150;
   const baseMileageRate = 2.5;
-  const hourlyC = baseHourlyRate * formData.estimated_duration_hours;
+  const hourlyCost = baseHourlyRate * formData.estimated_duration_hours;
   const mileageCost = baseMileageRate * formData.estimated_distance_miles;
 
   // Stairs surcharge
@@ -37,12 +37,8 @@ export function ReviewStep({ form }: ReviewStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Review Your Booking
-        </h2>
-        <p className="text-gray-600">
-          Please review all details before confirming your booking
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Review Your Booking</h2>
+        <p className="text-gray-600">Please review all details before confirming your booking</p>
       </div>
 
       <div className="grid gap-4">
@@ -81,40 +77,32 @@ export function ReviewStep({ form }: ReviewStepProps) {
           <CardContent className="space-y-3 text-sm">
             <div>
               <span className="font-medium">Date & Time:</span>
-              <div className="text-gray-700">
-                {formatDateTime(formData.move_date)}
-              </div>
+              <div className="text-gray-700">{formatDateTime(formData.move_date)}</div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <span className="font-medium">Distance:</span>
-                <div className="text-gray-700">
-                  {formData.estimated_distance_miles} miles
-                </div>
+                <div className="text-gray-700">{formData.estimated_distance_miles} miles</div>
               </div>
               <div>
                 <span className="font-medium">Duration:</span>
-                <div className="text-gray-700">
-                  {formData.estimated_duration_hours} hours
-                </div>
+                <div className="text-gray-700">{formData.estimated_duration_hours} hours</div>
               </div>
             </div>
             {formData.special_items && formData.special_items.length > 0 && (
               <div>
                 <span className="font-medium">Special Items:</span>
                 <div className="text-gray-700">
-                  {formData.special_items.map(item =>
-                    item.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-                  ).join(', ')}
+                  {formData.special_items
+                    .map((item) => item.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()))
+                    .join(', ')}
                 </div>
               </div>
             )}
             {formData.customer_notes && (
               <div>
                 <span className="font-medium">Notes:</span>
-                <div className="text-gray-700 italic">
-                  "{formData.customer_notes}"
-                </div>
+                <div className="text-gray-700 italic">&ldquo;{formData.customer_notes}&rdquo;</div>
               </div>
             )}
           </CardContent>
@@ -132,8 +120,10 @@ export function ReviewStep({ form }: ReviewStepProps) {
             <div>
               <div className="font-medium text-green-700 mb-1">Pickup</div>
               <div className="text-gray-700">
-                {formData.pickup_address}<br />
-                {formData.pickup_city}, {formData.pickup_state} {formData.pickup_zip}<br />
+                {formData.pickup_address}
+                <br />
+                {formData.pickup_city}, {formData.pickup_state} {formData.pickup_zip}
+                <br />
                 Floor {formData.pickup_floors}
                 {formData.has_elevator_pickup ? ' (Elevator)' : ' (Stairs)'}
               </div>
@@ -141,8 +131,10 @@ export function ReviewStep({ form }: ReviewStepProps) {
             <div>
               <div className="font-medium text-blue-700 mb-1">Dropoff</div>
               <div className="text-gray-700">
-                {formData.dropoff_address}<br />
-                {formData.dropoff_city}, {formData.dropoff_state} {formData.dropoff_zip}<br />
+                {formData.dropoff_address}
+                <br />
+                {formData.dropoff_city}, {formData.dropoff_state} {formData.dropoff_zip}
+                <br />
                 Floor {formData.dropoff_floors}
                 {formData.has_elevator_dropoff ? ' (Elevator)' : ' (Stairs)'}
               </div>
@@ -160,11 +152,17 @@ export function ReviewStep({ form }: ReviewStepProps) {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span>Hourly Rate ({formData.estimated_duration_hours} hrs @ {formatCurrency(baseHourlyRate)}/hr):</span>
+              <span>
+                Hourly Rate ({formData.estimated_duration_hours} hrs @{' '}
+                {formatCurrency(baseHourlyRate)}/hr):
+              </span>
               <span>{formatCurrency(hourlyCost)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Mileage ({formData.estimated_distance_miles} mi @ {formatCurrency(baseMileageRate)}/mi):</span>
+              <span>
+                Mileage ({formData.estimated_distance_miles} mi @ {formatCurrency(baseMileageRate)}
+                /mi):
+              </span>
               <span>{formatCurrency(mileageCost)}</span>
             </div>
             {stairsSurcharge > 0 && (
@@ -192,7 +190,8 @@ export function ReviewStep({ form }: ReviewStepProps) {
               <span>{formatCurrency(total)}</span>
             </div>
             <p className="text-xs text-gray-600 italic mt-2">
-              * Final price will be calculated by the moving company and may vary based on actual conditions
+              * Final price will be calculated by the moving company and may vary based on actual
+              conditions
             </p>
           </CardContent>
         </Card>
@@ -201,7 +200,8 @@ export function ReviewStep({ form }: ReviewStepProps) {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-800">
           <strong>Note:</strong> By confirming this booking, you agree to our terms of service.
-          You'll receive a confirmation email with your booking details and the assigned mover information.
+          You&apos;ll receive a confirmation email with your booking details and the assigned mover
+          information.
         </p>
       </div>
     </div>
