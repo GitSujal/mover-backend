@@ -394,3 +394,138 @@ async def get_document_verification(
             )
 
     return DocumentVerificationResponse.model_validate(verification)
+
+
+@router.post("/expiry-reminders/send")
+async def send_expiry_reminders(
+    days_threshold: int = Query(30, ge=1, le=90),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    """
+    Send expiry reminder notifications for documents expiring soon.
+
+    Typically called by background job/cron.
+    Requires platform admin role.
+    """
+    from app.services.notification_templates import EmailTemplates
+    from app.services.notifications import NotificationService
+
+    # Get expiring documents
+    expiring_docs = await VerificationService.get_expiring_documents(
+        db=db,
+        days_threshold=days_threshold,
+    )
+
+    notification_service = NotificationService()
+    email_templates = EmailTemplates()
+    sent_count = 0
+
+    for verification in expiring_docs:
+        try:
+            # Get entity (org or driver)
+            if verification.org_id:
+                org_result = await db.execute(
+                    select(Organization).where(Organization.id == verification.org_id)
+                )
+                org = org_result.scalar_one_or_none()
+                if not org:
+                    continue
+
+                recipient_email = org.contact_email
+                recipient_name = org.business_name
+            elif verification.driver_id:
+                driver_result = await db.execute(
+                    select(Driver).where(Driver.id == verification.driver_id)
+                )
+                driver = driver_result.scalar_one_or_none()
+                if not driver:
+                    continue
+
+                recipient_email = driver.email
+                recipient_name = driver.name
+            else:
+                continue
+
+            # Calculate days until expiry
+            days_until_expiry = (
+                (verification.expiry_date - datetime.utcnow()).days
+                if verification.expiry_date
+                else 0
+            )
+
+            # Send reminder
+            await notification_service.send_email(
+                to_email=recipient_email,
+                subject=f"Document Expiring Soon - {verification.document_type.value}",
+                html_content=email_templates.insurance_expiring(
+                    customer_name=recipient_name,
+                    document_type=verification.document_type.value,
+                    expiry_date=verification.expiry_date.strftime("%B %d, %Y")
+                    if verification.expiry_date
+                    else "N/A",
+                    days_remaining=days_until_expiry,
+                ),
+            )
+
+            # Mark reminder sent
+            await VerificationService.mark_expiry_reminder_sent(
+                db=db,
+                verification_id=verification.id,
+            )
+
+            sent_count += 1
+
+            logger.info(
+                f"Expiry reminder sent for verification {verification.id}",
+                extra={
+                    "verification_id": str(verification.id),
+                    "document_type": verification.document_type.value,
+                    "days_until_expiry": days_until_expiry,
+                },
+            )
+
+        except Exception as e:
+            logger.error(
+                f"Failed to send expiry reminder for verification {verification.id}: {e}",
+                exc_info=True,
+            )
+
+    return {
+        "total_expiring": len(expiring_docs),
+        "reminders_sent": sent_count,
+        "days_threshold": days_threshold,
+    }
+
+
+@router.get("/expiry-reminders/preview")
+async def preview_expiring_documents(
+    days_threshold: int = Query(30, ge=1, le=90),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    """
+    Preview documents that will expire soon (without sending notifications).
+
+    Requires platform admin role.
+    """
+    expiring_docs = await VerificationService.get_expiring_documents(
+        db=db,
+        days_threshold=days_threshold,
+    )
+
+    return {
+        "total_expiring": len(expiring_docs),
+        "days_threshold": days_threshold,
+        "documents": [
+            {
+                "verification_id": str(doc.id),
+                "document_type": doc.document_type.value,
+                "expiry_date": doc.expiry_date.strftime("%Y-%m-%d") if doc.expiry_date else None,
+                "days_until_expiry": (doc.expiry_date - datetime.utcnow()).days if doc.expiry_date else 0,
+                "org_id": str(doc.org_id) if doc.org_id else None,
+                "driver_id": str(doc.driver_id) if doc.driver_id else None,
+            }
+            for doc in expiring_docs
+        ],
+    }
