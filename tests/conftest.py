@@ -12,8 +12,9 @@ from sqlalchemy.pool import NullPool
 
 # Import all models to ensure tables are created
 from app import models  # noqa: F401
-from app.core.database import Base, get_db
+from app.core.database import get_db
 from app.main import app
+from app.models.base import Base
 
 # Test database URL
 TEST_DATABASE_URL = "postgresql+asyncpg://movehub:test_password@localhost:5432/movehub_test"
