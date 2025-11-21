@@ -15,6 +15,15 @@ from app.models.truck import Truck
 class TestBookingAPI:
     """Test booking API endpoints."""
 
+    def _create_booking_data(self, org_truck_data, **kwargs):
+        """Helper to create booking data with required fields."""
+        base_data = {
+            "org_id": str(org_truck_data["org"].id),
+            "truck_id": str(org_truck_data["truck"].id),
+        }
+        base_data.update(kwargs)
+        return base_data
+
     @pytest.fixture
     async def sample_org_with_truck(self, db_session):
         """Create organization with truck and pricing."""
@@ -87,28 +96,29 @@ class TestBookingAPI:
         # Book for tomorrow
         move_date = datetime.utcnow() + timedelta(days=1)
 
-        booking_data = {
-            "customer_name": "John Doe",
-            "customer_email": "john@example.com",
-            "customer_phone": "+14155551111",
-            "move_date": move_date.isoformat(),
-            "pickup_address": "123 Start St",
-            "pickup_city": "San Francisco",
-            "pickup_state": "CA",
-            "pickup_zip": "94102",
-            "pickup_floors": 2,
-            "has_elevator_pickup": False,
-            "dropoff_address": "456 End Ave",
-            "dropoff_city": "Oakland",
-            "dropoff_state": "CA",
-            "dropoff_zip": "94601",
-            "dropoff_floors": 1,
-            "has_elevator_dropoff": True,
-            "estimated_distance_miles": 15.5,
-            "estimated_duration_hours": 4.0,
-            "special_items": ["piano"],
-            "customer_notes": "Handle with care",
-        }
+        booking_data = self._create_booking_data(
+            sample_org_with_truck,
+            customer_name="John Doe",
+            customer_email="john@example.com",
+            customer_phone="+14155551111",
+            move_date=move_date.isoformat(),
+            pickup_address="123 Start St",
+            pickup_city="San Francisco",
+            pickup_state="CA",
+            pickup_zip="94102",
+            pickup_floors=2,
+            has_elevator_pickup=False,
+            dropoff_address="456 End Ave",
+            dropoff_city="Oakland",
+            dropoff_state="CA",
+            dropoff_zip="94601",
+            dropoff_floors=1,
+            has_elevator_dropoff=True,
+            estimated_distance_miles=15.5,
+            estimated_duration_hours=4.0,
+            special_items=["piano"],
+            customer_notes="Handle with care",
+        )
 
         response = await client.post("/api/v1/bookings", json=booking_data)
 
@@ -143,27 +153,28 @@ class TestBookingAPI:
         # First create a booking
         move_date = datetime.utcnow() + timedelta(days=1)
 
-        booking_data = {
-            "customer_name": "Jane Smith",
-            "customer_email": "jane@example.com",
-            "customer_phone": "+14155552222",
-            "move_date": move_date.isoformat(),
-            "pickup_address": "789 Main St",
-            "pickup_city": "San Francisco",
-            "pickup_state": "CA",
-            "pickup_zip": "94103",
-            "pickup_floors": 0,
-            "has_elevator_pickup": True,
-            "dropoff_address": "321 Oak Ave",
-            "dropoff_city": "Berkeley",
-            "dropoff_state": "CA",
-            "dropoff_zip": "94704",
-            "dropoff_floors": 3,
-            "has_elevator_dropoff": False,
-            "estimated_distance_miles": 10.0,
-            "estimated_duration_hours": 3.0,
-            "special_items": [],
-        }
+        booking_data = self._create_booking_data(
+            sample_org_with_truck,
+            customer_name="Jane Smith",
+            customer_email="jane@example.com",
+            customer_phone="+14155552222",
+            move_date=move_date.isoformat(),
+            pickup_address="789 Main St",
+            pickup_city="San Francisco",
+            pickup_state="CA",
+            pickup_zip="94103",
+            pickup_floors=0,
+            has_elevator_pickup=True,
+            dropoff_address="321 Oak Ave",
+            dropoff_city="Berkeley",
+            dropoff_state="CA",
+            dropoff_zip="94704",
+            dropoff_floors=3,
+            has_elevator_dropoff=False,
+            estimated_distance_miles=10.0,
+            estimated_duration_hours=3.0,
+            special_items=[],
+        )
 
         create_response = await client.post("/api/v1/bookings", json=booking_data)
         assert create_response.status_code == 200
@@ -191,27 +202,28 @@ class TestBookingAPI:
         move_date = datetime.utcnow() + timedelta(days=1)
 
         for i in range(3):
-            booking_data = {
-                "customer_name": f"Customer {i}",
-                "customer_email": f"customer{i}@example.com",
-                "customer_phone": f"+1415555000{i}",
-                "move_date": move_date.isoformat(),
-                "pickup_address": f"{i} Start St",
-                "pickup_city": "San Francisco",
-                "pickup_state": "CA",
-                "pickup_zip": "94102",
-                "pickup_floors": 0,
-                "has_elevator_pickup": True,
-                "dropoff_address": f"{i} End Ave",
-                "dropoff_city": "Oakland",
-                "dropoff_state": "CA",
-                "dropoff_zip": "94601",
-                "dropoff_floors": 0,
-                "has_elevator_dropoff": True,
-                "estimated_distance_miles": 10.0,
-                "estimated_duration_hours": 2.0,
-                "special_items": [],
-            }
+            booking_data = self._create_booking_data(
+                sample_org_with_truck,
+                customer_name=f"Customer {i}",
+                customer_email=f"customer{i}@example.com",
+                customer_phone=f"+1415555000{i}",
+                move_date=move_date.isoformat(),
+                pickup_address=f"{i} Start St",
+                pickup_city="San Francisco",
+                pickup_state="CA",
+                pickup_zip="94102",
+                pickup_floors=0,
+                has_elevator_pickup=True,
+                dropoff_address=f"{i} End Ave",
+                dropoff_city="Oakland",
+                dropoff_state="CA",
+                dropoff_zip="94601",
+                dropoff_floors=0,
+                has_elevator_dropoff=True,
+                estimated_distance_miles=10.0,
+                estimated_duration_hours=2.0,
+                special_items=[],
+            )
             response = await client.post("/api/v1/bookings", json=booking_data)
             assert response.status_code == 200
 
@@ -228,27 +240,28 @@ class TestBookingAPI:
         # Create booking
         move_date = datetime.utcnow() + timedelta(days=1)
 
-        booking_data = {
-            "customer_name": "Test Customer",
-            "customer_email": "test@example.com",
-            "customer_phone": "+14155553333",
-            "move_date": move_date.isoformat(),
-            "pickup_address": "100 Test St",
-            "pickup_city": "San Francisco",
-            "pickup_state": "CA",
-            "pickup_zip": "94105",
-            "pickup_floors": 0,
-            "has_elevator_pickup": True,
-            "dropoff_address": "200 Test Ave",
-            "dropoff_city": "Oakland",
-            "dropoff_state": "CA",
-            "dropoff_zip": "94607",
-            "dropoff_floors": 0,
-            "has_elevator_dropoff": True,
-            "estimated_distance_miles": 5.0,
-            "estimated_duration_hours": 2.0,
-            "special_items": [],
-        }
+        booking_data = self._create_booking_data(
+            sample_org_with_truck,
+            customer_name="Test Customer",
+            customer_email="test@example.com",
+            customer_phone="+14155553333",
+            move_date=move_date.isoformat(),
+            pickup_address="100 Test St",
+            pickup_city="San Francisco",
+            pickup_state="CA",
+            pickup_zip="94105",
+            pickup_floors=0,
+            has_elevator_pickup=True,
+            dropoff_address="200 Test Ave",
+            dropoff_city="Oakland",
+            dropoff_state="CA",
+            dropoff_zip="94607",
+            dropoff_floors=0,
+            has_elevator_dropoff=True,
+            estimated_distance_miles=5.0,
+            estimated_duration_hours=2.0,
+            special_items=[],
+        )
 
         create_response = await client.post("/api/v1/bookings", json=booking_data)
         assert create_response.status_code == 200
@@ -268,27 +281,28 @@ class TestBookingAPI:
         move_date = datetime.utcnow() + timedelta(days=1)
 
         # Booking with stairs at both locations
-        booking_data = {
-            "customer_name": "Stairs Test",
-            "customer_email": "stairs@example.com",
-            "customer_phone": "+14155554444",
-            "move_date": move_date.isoformat(),
-            "pickup_address": "Walk-up Building",
-            "pickup_city": "San Francisco",
-            "pickup_state": "CA",
-            "pickup_zip": "94102",
-            "pickup_floors": 3,  # 3 flights
-            "has_elevator_pickup": False,  # No elevator!
-            "dropoff_address": "Another Walk-up",
-            "dropoff_city": "Oakland",
-            "dropoff_state": "CA",
-            "dropoff_zip": "94601",
-            "dropoff_floors": 2,  # 2 flights
-            "has_elevator_dropoff": False,  # No elevator!
-            "estimated_distance_miles": 10.0,
-            "estimated_duration_hours": 4.0,
-            "special_items": [],
-        }
+        booking_data = self._create_booking_data(
+            sample_org_with_truck,
+            customer_name="Stairs Test",
+            customer_email="stairs@example.com",
+            customer_phone="+14155554444",
+            move_date=move_date.isoformat(),
+            pickup_address="Walk-up Building",
+            pickup_city="San Francisco",
+            pickup_state="CA",
+            pickup_zip="94102",
+            pickup_floors=3,  # 3 flights
+            has_elevator_pickup=False,  # No elevator!
+            dropoff_address="Another Walk-up",
+            dropoff_city="Oakland",
+            dropoff_state="CA",
+            dropoff_zip="94601",
+            dropoff_floors=2,  # 2 flights
+            has_elevator_dropoff=False,  # No elevator!
+            estimated_distance_miles=10.0,
+            estimated_duration_hours=4.0,
+            special_items=[],
+        )
 
         response = await client.post("/api/v1/bookings", json=booking_data)
 
@@ -309,27 +323,28 @@ class TestBookingAPI:
         """Test booking with multiple special items."""
         move_date = datetime.utcnow() + timedelta(days=1)
 
-        booking_data = {
-            "customer_name": "Special Items Customer",
-            "customer_email": "special@example.com",
-            "customer_phone": "+14155555555",
-            "move_date": move_date.isoformat(),
-            "pickup_address": "123 Art St",
-            "pickup_city": "San Francisco",
-            "pickup_state": "CA",
-            "pickup_zip": "94102",
-            "pickup_floors": 0,
-            "has_elevator_pickup": True,
-            "dropoff_address": "456 Gallery Ave",
-            "dropoff_city": "Oakland",
-            "dropoff_state": "CA",
-            "dropoff_zip": "94601",
-            "dropoff_floors": 0,
-            "has_elevator_dropoff": True,
-            "estimated_distance_miles": 12.0,
-            "estimated_duration_hours": 5.0,
-            "special_items": ["piano", "antiques", "artwork"],
-        }
+        booking_data = self._create_booking_data(
+            sample_org_with_truck,
+            customer_name="Special Items Customer",
+            customer_email="special@example.com",
+            customer_phone="+14155555555",
+            move_date=move_date.isoformat(),
+            pickup_address="123 Art St",
+            pickup_city="San Francisco",
+            pickup_state="CA",
+            pickup_zip="94102",
+            pickup_floors=0,
+            has_elevator_pickup=True,
+            dropoff_address="456 Gallery Ave",
+            dropoff_city="Oakland",
+            dropoff_state="CA",
+            dropoff_zip="94601",
+            dropoff_floors=0,
+            has_elevator_dropoff=True,
+            estimated_distance_miles=12.0,
+            estimated_duration_hours=5.0,
+            special_items=["piano", "antiques", "artwork"],
+        )
 
         response = await client.post("/api/v1/bookings", json=booking_data)
 
