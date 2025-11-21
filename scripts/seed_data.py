@@ -20,17 +20,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from datetime import datetime, timedelta
-from uuid import uuid4
-
-from sqlalchemy import select
 
 from app.core.database import get_db_context
-from app.models.organization import Organization, OrganizationStatus
-from app.models.truck import Truck
 from app.models.driver import Driver
 from app.models.insurance import InsurancePolicy, InsuranceType
+from app.models.organization import Organization, OrganizationStatus
 from app.models.pricing import PricingConfig
-from app.core.security import get_password_hash
+from app.models.truck import Truck
 
 
 async def seed_organizations():
@@ -198,10 +194,7 @@ async def seed_trucks(orgs: list[Organization]):
         # Assign trucks to organizations (2 each)
         for i, truck_data in enumerate(trucks_data):
             org_index = i // 2
-            truck = Truck(
-                org_id=orgs[org_index].id,
-                **truck_data
-            )
+            truck = Truck(org_id=orgs[org_index].id, **truck_data)
             db.add(truck)
             trucks.append(truck)
 
@@ -305,10 +298,7 @@ async def seed_drivers(orgs: list[Organization]):
         # Assign drivers to organizations (2 each)
         for i, driver_data in enumerate(drivers_data):
             org_index = i // 2
-            driver = Driver(
-                org_id=orgs[org_index].id,
-                **driver_data
-            )
+            driver = Driver(org_id=orgs[org_index].id, **driver_data)
             db.add(driver)
             drivers.append(driver)
 
@@ -338,26 +328,22 @@ async def seed_pricing_configs(orgs: list[Organization]):
                         "type": "stairs",
                         "amount": 50.0,
                         "per_flight": True,
-                        "description": "Stairs surcharge (per flight)"
+                        "description": "Stairs surcharge (per flight)",
                     },
-                    {
-                        "type": "piano",
-                        "amount": 150.0,
-                        "description": "Piano moving surcharge"
-                    },
+                    {"type": "piano", "amount": 150.0, "description": "Piano moving surcharge"},
                     {
                         "type": "weekend",
                         "multiplier": 1.25,
                         "days": [0, 6],  # Sunday and Saturday
-                        "description": "Weekend surcharge (25% extra)"
+                        "description": "Weekend surcharge (25% extra)",
                     },
                     {
                         "type": "after_hours",
                         "multiplier": 1.20,
                         "min_time": "18:00",
                         "max_time": "08:00",
-                        "description": "After hours surcharge (20% extra)"
-                    }
+                        "description": "After hours surcharge (20% extra)",
+                    },
                 ],
                 is_active=True,
             )
@@ -390,6 +376,7 @@ async def main():
     except Exception as e:
         print(f"\n✗ Error seeding database: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

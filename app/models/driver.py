@@ -74,4 +74,4 @@ class Driver(BaseModel):
         return f"{self.first_name} {self.last_name}"
 
     def __repr__(self) -> str:
-        return f"<Driver(id={self.id}, name={self.full_name}, " f"verified={self.is_verified})>"
+        return f"<Driver(id={self.id}, name={self.full_name}, verified={self.is_verified})>"

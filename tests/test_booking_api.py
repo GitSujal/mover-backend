@@ -1,6 +1,6 @@
 """Integration tests for booking API endpoints."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from httpx import AsyncClient
@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from app.models.driver import Driver
 from app.models.organization import Organization, OrganizationStatus
 from app.models.pricing import PricingConfig
-from app.models.truck import Truck
+from app.models.truck import Truck, TruckSize, TruckStatus
 
 
 @pytest.mark.integration
@@ -51,9 +51,13 @@ class TestBookingAPI:
             make="Ford",
             model="F-650",
             year=2022,
+            size=TruckSize.LARGE,
             capacity_cubic_feet=1200,
-            current_latitude=37.7749,
-            current_longitude=-122.4194,
+            max_weight_lbs=10000,
+            status=TruckStatus.AVAILABLE,
+            base_location="SRID=4326;POINT(-122.4194 37.7749)",  # PostGIS format: lon lat
+            registration_number="REG123456",
+            registration_expiry="2026-12-31",
         )
         db_session.add(truck)
 
@@ -94,7 +98,7 @@ class TestBookingAPI:
     async def test_create_booking_success(self, client: AsyncClient, sample_org_with_truck):
         """Test successful booking creation."""
         # Book for tomorrow
-        move_date = datetime.utcnow() + timedelta(days=1)
+        move_date = datetime.now(UTC) + timedelta(days=1)
 
         booking_data = self._create_booking_data(
             sample_org_with_truck,
@@ -122,14 +126,14 @@ class TestBookingAPI:
 
         response = await client.post("/api/v1/bookings", json=booking_data)
 
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
 
         # Verify response structure
         assert "id" in data
         assert data["customer_name"] == "John Doe"
         assert data["customer_email"] == "john@example.com"
-        assert data["status"] == "PENDING"
+        assert data["status"] == "confirmed"
         assert data["pickup_floors"] == 2
         assert data["dropoff_floors"] == 1
         assert "piano" in data["special_items"]
@@ -151,7 +155,7 @@ class TestBookingAPI:
     async def test_get_booking_by_id(self, client: AsyncClient, sample_org_with_truck):
         """Test retrieving a booking by ID."""
         # First create a booking
-        move_date = datetime.utcnow() + timedelta(days=1)
+        move_date = datetime.now(UTC) + timedelta(days=1)
 
         booking_data = self._create_booking_data(
             sample_org_with_truck,
@@ -177,7 +181,7 @@ class TestBookingAPI:
         )
 
         create_response = await client.post("/api/v1/bookings", json=booking_data)
-        assert create_response.status_code == 200
+        assert create_response.status_code == 201
         booking_id = create_response.json()["id"]
 
         # Now retrieve it
@@ -198,10 +202,12 @@ class TestBookingAPI:
 
     async def test_list_bookings(self, client: AsyncClient, sample_org_with_truck):
         """Test listing all bookings requires authentication."""
-        # Create multiple bookings
-        move_date = datetime.utcnow() + timedelta(days=1)
+        # Create multiple bookings at different times to avoid conflicts
+        base_date = datetime.now(UTC) + timedelta(days=1)
 
         for i in range(3):
+            # Space bookings 1 day apart to avoid conflicts
+            move_date = base_date + timedelta(days=i)
             booking_data = self._create_booking_data(
                 sample_org_with_truck,
                 customer_name=f"Customer {i}",
@@ -225,7 +231,7 @@ class TestBookingAPI:
                 special_items=[],
             )
             response = await client.post("/api/v1/bookings", json=booking_data)
-            assert response.status_code == 200
+            assert response.status_code == 201
 
         # List endpoint requires authentication (returns 403 without auth)
         list_response = await client.get("/api/v1/bookings")
@@ -236,7 +242,7 @@ class TestBookingAPI:
     async def test_update_booking_status(self, client: AsyncClient, sample_org_with_truck):
         """Test updating booking status requires authentication."""
         # Create booking
-        move_date = datetime.utcnow() + timedelta(days=1)
+        move_date = datetime.now(UTC) + timedelta(days=1)
 
         booking_data = self._create_booking_data(
             sample_org_with_truck,
@@ -262,7 +268,7 @@ class TestBookingAPI:
         )
 
         create_response = await client.post("/api/v1/bookings", json=booking_data)
-        assert create_response.status_code == 200
+        assert create_response.status_code == 201
         booking_id = create_response.json()["id"]
 
         # Update endpoint requires authentication (returns 403 without auth)
@@ -275,7 +281,7 @@ class TestBookingAPI:
 
     async def test_stairs_surcharge_calculation(self, client: AsyncClient, sample_org_with_truck):
         """Test that stairs surcharge is calculated correctly."""
-        move_date = datetime.utcnow() + timedelta(days=1)
+        move_date = datetime.now(UTC) + timedelta(days=1)
 
         # Booking with stairs at both locations
         booking_data = self._create_booking_data(
@@ -303,7 +309,7 @@ class TestBookingAPI:
 
         response = await client.post("/api/v1/bookings", json=booking_data)
 
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
 
         # Verify booking was created correctly
@@ -318,7 +324,7 @@ class TestBookingAPI:
 
     async def test_special_items_handling(self, client: AsyncClient, sample_org_with_truck):
         """Test booking with multiple special items."""
-        move_date = datetime.utcnow() + timedelta(days=1)
+        move_date = datetime.now(UTC) + timedelta(days=1)
 
         booking_data = self._create_booking_data(
             sample_org_with_truck,
@@ -345,7 +351,7 @@ class TestBookingAPI:
 
         response = await client.post("/api/v1/bookings", json=booking_data)
 
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
 
         assert "piano" in data["special_items"]

@@ -2,6 +2,7 @@
 
 import asyncio
 from collections.abc import AsyncGenerator, Generator
+from datetime import UTC
 
 import pytest
 import pytest_asyncio
@@ -18,7 +19,7 @@ from app.main import app
 from app.models.base import Base
 
 # Test database URL
-TEST_DATABASE_URL = "postgresql+asyncpg://movehub:test_password@localhost:5432/movehub_test"
+TEST_DATABASE_URL = "postgresql+asyncpg://movehub:movehub_dev_password@localhost:5432/movehub_test"
 
 
 @pytest.fixture(scope="session")
@@ -38,18 +39,13 @@ async def db_engine():
         poolclass=NullPool,
     )
 
-    # Drop all tables and types (including ENUMs) before creating fresh schema
+    # Drop all tables and recreate
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
-        # Drop all custom types (ENUMs) that might persist
-        await conn.execute(text("DROP TYPE IF EXISTS organizationstatus CASCADE"))
-        await conn.execute(text("DROP TYPE IF EXISTS bookingstatus CASCADE"))
-        await conn.execute(text("DROP TYPE IF EXISTS userrole CASCADE"))
-        await conn.execute(text("DROP TYPE IF EXISTS insurancetype CASCADE"))
-        await conn.commit()
-
-    # Create all tables fresh
-    async with engine.begin() as conn:
+        # Ensure required PostgreSQL extensions are enabled
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS btree_gist"))
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
+        # Create all tables
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine
@@ -112,7 +108,7 @@ def sample_booking_data() -> dict:
     """Sample booking data for testing."""
     from datetime import datetime, timedelta
 
-    move_date = datetime.utcnow() + timedelta(days=7)
+    move_date = datetime.now(UTC) + timedelta(days=7)
 
     return {
         "customer_name": "John Doe",

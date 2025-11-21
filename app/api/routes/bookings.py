@@ -1,7 +1,7 @@
 """Booking routes for customers and movers."""
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -61,10 +61,45 @@ async def create_booking(
     Create a new booking (customer endpoint).
 
     Validates availability and creates confirmed booking with pricing.
+    For customer bookings without org_id/truck_id, a default org and available
+    truck will be assigned.
     """
+    # If org_id or truck_id not provided (customer booking), assign defaults
+    # TODO: Implement proper truck/org matching algorithm based on location, availability, etc.
+    if not booking_data.org_id or not booking_data.truck_id:
+        from sqlalchemy import select
+
+        from app.models.organization import Organization, OrganizationStatus
+        from app.models.truck import Truck
+
+        # Get first approved organization
+        result = await db.execute(
+            select(Organization).where(Organization.status == OrganizationStatus.APPROVED).limit(1)
+        )
+        org = result.scalar_one_or_none()
+
+        if not org:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="No moving companies available at this time. Please try again later.",
+            )
+
+        # Get an available truck from this organization
+        result = await db.execute(select(Truck).where(Truck.org_id == org.id).limit(1))
+        truck = result.scalar_one_or_none()
+
+        if not truck:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="No trucks available at this time. Please try again later.",
+            )
+
+        # Assign to booking data
+        booking_data.org_id = org.id
+        booking_data.truck_id = truck.id
+
     # Get organization's pricing config
     # TODO: Fetch from database - simplified for now
-
     pricing_config = PricingConfigResponse(
         id=UUID("00000000-0000-0000-0000-000000000000"),
         org_id=booking_data.org_id,
@@ -73,8 +108,8 @@ async def create_booking(
         minimum_charge=200.0,
         surcharge_rules=[],
         is_active=True,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
     try:

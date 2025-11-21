@@ -28,7 +28,7 @@
 
 @layer utilities {
   .step-number {
-    @apply flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white;
+    @apply flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-sm font-semibold text-white;
   }
 
   .step-number-inactive {

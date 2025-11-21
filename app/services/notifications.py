@@ -161,13 +161,13 @@ class NotificationService:
         <body>
             <h2>Booking Confirmed!</h2>
             <p>Dear {customer_name},</p>
-            <p>Your move has been confirmed for {booking_details.get('move_date')}.</p>
+            <p>Your move has been confirmed for {booking_details.get("move_date")}.</p>
 
             <h3>Details:</h3>
             <ul>
-                <li><strong>Pickup:</strong> {booking_details.get('pickup_address')}</li>
-                <li><strong>Dropoff:</strong> {booking_details.get('dropoff_address')}</li>
-                <li><strong>Estimated Cost:</strong> ${booking_details.get('estimated_amount')}</li>
+                <li><strong>Pickup:</strong> {booking_details.get("pickup_address")}</li>
+                <li><strong>Dropoff:</strong> {booking_details.get("dropoff_address")}</li>
+                <li><strong>Estimated Cost:</strong> ${booking_details.get("estimated_amount")}</li>
             </ul>
 
             <p>We'll send you reminders as your move date approaches.</p>

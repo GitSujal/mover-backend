@@ -1,7 +1,7 @@
 services:
   # PostgreSQL with PostGIS
   postgres:
-    image: postgis/postgis:16-3.4
+    image: postgis/postgis:17-3.5
     container_name: movehub-postgres
     environment:
       POSTGRES_USER: movehub
@@ -23,7 +23,7 @@ services:
 
   # Redis
   redis:
-    image: redis:7.4-alpine
+    image: redis:7.4.2-alpine
     container_name: movehub-redis
     ports:
       - "6379:6379"
@@ -69,8 +69,8 @@ services:
       STRIPE_PUBLISHABLE_KEY: pk_test_your_key_here
       STRIPE_WEBHOOK_SECRET: whsec_your_secret_here
 
-      # CORS
-      CORS_ORIGINS: '["http://localhost:3000", "http://frontend:3000", "http://localhost:8000"]'
+      # CORS - Allow all local origins for development
+      CORS_ORIGINS: '["http://localhost:3000", "http://127.0.0.1:3000", "http://frontend:3000", "http://localhost:8000", "http://127.0.0.1:8000"]'
 
       # OpenTelemetry
       OTEL_SERVICE_NAME: movehub-api
@@ -86,12 +86,13 @@ services:
     volumes:
       - ./app:/app/app
       - ./alembic:/app/alembic
+      - ./scripts:/app/scripts
     networks:
       - movehub-network
     command: >
       sh -c "
         alembic upgrade head &&
-        python scripts/seed_data.py &&
+        (test -f scripts/seed_data.py && python scripts/seed_data.py || echo 'Skipping seed_data.py - file not found') &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
       "
 
@@ -102,9 +103,9 @@ services:
       dockerfile: Dockerfile
       args:
         - NODE_ENV=production
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
     container_name: movehub-frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
       NODE_ENV: production
     ports:
       - "3000:3000"

@@ -84,4 +84,4 @@ class PricingConfig(BaseModel):
     )
 
     def __repr__(self) -> str:
-        return f"<PricingConfig(id={self.id}, org_id={self.org_id}, " f"active={self.is_active})>"
+        return f"<PricingConfig(id={self.id}, org_id={self.org_id}, active={self.is_active})>"

@@ -5,7 +5,17 @@ from datetime import date
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, Date, ForeignKey, Numeric, String, UniqueConstraint
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    ForeignKey,
+    Numeric,
+    String,
+    UniqueConstraint,
+)
+from sqlalchemy import (
+    Enum as SQLEnum,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
@@ -40,7 +50,10 @@ class InsurancePolicy(BaseModel):
     )
 
     # Policy Details
-    policy_type: Mapped[InsuranceType] = mapped_column(nullable=False)
+    policy_type: Mapped[InsuranceType] = mapped_column(
+        SQLEnum(InsuranceType, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+    )
     policy_number: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     provider: Mapped[str] = mapped_column(String(255), nullable=False)
 
@@ -78,6 +91,5 @@ class InsurancePolicy(BaseModel):
 
     def __repr__(self) -> str:
         return (
-            f"<InsurancePolicy(id={self.id}, type={self.policy_type}, "
-            f"expiry={self.expiry_date})>"
+            f"<InsurancePolicy(id={self.id}, type={self.policy_type}, expiry={self.expiry_date})>"
         )

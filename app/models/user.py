@@ -5,7 +5,17 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    String,
+    UniqueConstraint,
+)
+from sqlalchemy import (
+    Enum as SQLEnum,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
@@ -61,6 +71,7 @@ class User(BaseModel):
 
     # Role
     role: Mapped[UserRole] = mapped_column(
+        SQLEnum(UserRole, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=UserRole.ORG_STAFF,
         index=True,

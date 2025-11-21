@@ -2,7 +2,7 @@
 # Uses UV for blazing fast dependency installation
 
 # Stage 1: Builder
-FROM python:3.11-slim as builder
+FROM python:3.13-slim as builder
 
 # Set working directory
 WORKDIR /app
@@ -29,7 +29,7 @@ RUN uv pip install --system --no-cache -e ".[dev,test]" && \
     uv pip install --system --no-cache psycopg2-binary
 
 # Stage 2: Runtime
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Set working directory
 WORKDIR /app
@@ -41,7 +41,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code

@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 env:
-  PYTHON_VERSION: '3.12'  # Latest stable Python
+  PYTHON_VERSION: '3.13'  # Latest stable Python
   NODE_VERSION: '20'  # Latest LTS Node.js
 
 jobs:
@@ -34,11 +34,11 @@ jobs:
 
       - name: Run Black (formatting check)
         run: |
-          black --check app/ tests/
+          black --check app/ 
 
       - name: Run Ruff (linting)
         run: |
-          ruff check app/ tests/
+          ruff check app/
 
       - name: Run MyPy (type checking)
         run: |

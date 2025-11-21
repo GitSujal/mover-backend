@@ -6,6 +6,7 @@ from uuid import UUID
 
 from geoalchemy2 import Geography
 from sqlalchemy import CheckConstraint, ForeignKey, Integer, String
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
@@ -56,12 +57,16 @@ class Truck(BaseModel):
     year: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # Capacity
-    size: Mapped[TruckSize] = mapped_column(nullable=False)
+    size: Mapped[TruckSize] = mapped_column(
+        SQLEnum(TruckSize, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+    )
     capacity_cubic_feet: Mapped[int] = mapped_column(Integer, nullable=False)
     max_weight_lbs: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # Status
     status: Mapped[TruckStatus] = mapped_column(
+        SQLEnum(TruckStatus, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=TruckStatus.AVAILABLE,
         index=True,

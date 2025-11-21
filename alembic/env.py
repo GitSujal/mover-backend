@@ -8,11 +8,11 @@ from alembic import context
 
 # Import app configuration and models
 from app.core.config import settings
-from app.models.base import Base
 
 # Import all models to ensure they're registered
 from app.models import (  # noqa: F401
     Booking,
+    CustomerSession,
     Driver,
     InsurancePolicy,
     Invoice,
@@ -20,8 +20,8 @@ from app.models import (  # noqa: F401
     PricingConfig,
     Truck,
     User,
-    CustomerSession,
 )
+from app.models.base import Base
 
 # Alembic Config object
 config = context.config
@@ -67,14 +67,38 @@ def run_migrations_online() -> None:
             version_table_schema=None,
             # Ignore PostGIS and tiger tables
             include_object=lambda obj, name, type_, reflected, compare_to: (
-                False if type_ == "table" and name in (
-                    "spatial_ref_sys", "geocode_settings", "geocode_settings_default",
-                    "pagc_gaz", "pagc_lex", "pagc_rules", "topology", "layer",
-                    "faces", "edges", "addrfeat", "loader_variables", "cousub",
-                    "county", "featnames", "state", "place", "zip_state", "zip_lookup_base",
-                    "zip_state_loc", "addr", "zcta5", "bg", "tract", "tabblock20"
-                ) else True
-            )
+                False
+                if type_ == "table"
+                and name
+                in (
+                    "spatial_ref_sys",
+                    "geocode_settings",
+                    "geocode_settings_default",
+                    "pagc_gaz",
+                    "pagc_lex",
+                    "pagc_rules",
+                    "topology",
+                    "layer",
+                    "faces",
+                    "edges",
+                    "addrfeat",
+                    "loader_variables",
+                    "cousub",
+                    "county",
+                    "featnames",
+                    "state",
+                    "place",
+                    "zip_state",
+                    "zip_lookup_base",
+                    "zip_state_loc",
+                    "addr",
+                    "zcta5",
+                    "bg",
+                    "tract",
+                    "tabblock20",
+                )
+                else True
+            ),
         )
 
         with context.begin_transaction():

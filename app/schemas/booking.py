@@ -1,6 +1,6 @@
 """Booking schemas."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
 from pydantic import EmailStr, Field, field_validator
@@ -37,16 +37,21 @@ class BookingBase(BaseSchema):
     @classmethod
     def validate_move_date(cls, v: datetime) -> datetime:
         """Validate move date is in the future."""
-        if v < datetime.now():
+        now = datetime.now(UTC) if v.tzinfo else datetime.now()
+        if v < now:
             raise ValueError("Move date must be in the future")
         return v
 
 
 class BookingCreate(BookingBase):
-    """Schema for creating a booking."""
+    """Schema for creating a booking.
 
-    truck_id: UUID
-    org_id: UUID
+    For customer bookings, truck_id and org_id are optional and will be assigned
+    by the system. For organization bookings, they must be provided.
+    """
+
+    truck_id: UUID | None = None
+    org_id: UUID | None = None
 
 
 class BookingUpdate(BaseSchema):

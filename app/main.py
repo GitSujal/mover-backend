@@ -104,14 +104,15 @@ if settings.is_production:
         allowed_hosts=["*.movehub.com", "movehub.com"],
     )
 
-# 2. CORS
+# 2. CORS - Configured for local development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=settings.CORS_CREDENTIALS,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
-    expose_headers=["X-Request-ID"],
+    expose_headers=["X-Request-ID", "Content-Type"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
 # 3. GZip compression

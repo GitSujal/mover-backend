@@ -14,6 +14,9 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy import (
+    Enum as SQLEnum,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
@@ -78,6 +81,7 @@ class Invoice(BaseModel):
 
     # Payment
     status: Mapped[InvoiceStatus] = mapped_column(
+        SQLEnum(InvoiceStatus, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=InvoiceStatus.DRAFT,
         index=True,

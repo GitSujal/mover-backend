@@ -16,6 +16,9 @@ from sqlalchemy import (
     Text,
     text,
 )
+from sqlalchemy import (
+    Enum as SQLEnum,
+)
 from sqlalchemy.dialects.postgresql import JSONB, ExcludeConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -148,6 +151,7 @@ class Booking(BaseModel):
 
     # Status
     status: Mapped[BookingStatus] = mapped_column(
+        SQLEnum(BookingStatus, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=BookingStatus.PENDING,
         index=True,
@@ -169,7 +173,7 @@ class Booking(BaseModel):
         # No two bookings for the same truck can have overlapping time windows
         ExcludeConstraint(
             (text("truck_id"), "="),
-            (text("tsrange(effective_start, effective_end)"), "&&"),
+            (text("tstzrange(effective_start, effective_end)"), "&&"),
             name="exclude_overlapping_bookings",
             using="gist",
         ),

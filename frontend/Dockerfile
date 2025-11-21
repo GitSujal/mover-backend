@@ -1,7 +1,7 @@
 # Optimized Multi-stage Dockerfile for Next.js Frontend
 # Uses Debian slim for better npm compatibility (Alpine can have native module issues)
 
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 
 # Install OpenSSL and other runtime dependencies
 RUN apt-get update && apt-get install -y \
@@ -22,11 +22,11 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy package files and npm config
-COPY package.json package-lock.json* .npmrc ./
+COPY package.json package-lock.json .npmrc ./
 
 # Install dependencies with retry logic for reliability
 # Using npm ci for deterministic builds from package-lock.json
-RUN npm ci --prefer-offline --no-audit || \
+RUN npm ci --no-audit || \
     (echo "First attempt failed, cleaning cache and retrying..." && \
      npm cache clean --force && \
      npm ci --no-audit)
@@ -41,9 +41,15 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy all source code
 COPY . .
 
-# Set environment variable for build
+# Create public directory if it doesn't exist
+RUN mkdir -p /app/public
+
+# Accept build args for environment variables
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+
+# Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NEXT_PUBLIC_API_URL=http://api:8000
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build Next.js application
 # This generates the standalone output as configured in next.config.js

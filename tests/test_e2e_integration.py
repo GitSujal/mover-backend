@@ -5,13 +5,13 @@ These tests simulate the complete booking workflow as a user would experience it
 ensuring that the frontend and backend are properly integrated.
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from app.models.organization import Organization, OrganizationStatus
 from app.models.pricing import PricingConfig
-from app.models.truck import Truck
+from app.models.truck import Truck, TruckSize, TruckStatus
 
 
 @pytest.mark.integration
@@ -55,9 +55,13 @@ class TestEndToEndBookingWorkflow:
             make="Ford",
             model="F-650",
             year=2023,
+            size=TruckSize.LARGE,
             capacity_cubic_feet=1200,
-            current_latitude=37.7749,
-            current_longitude=-122.4194,
+            max_weight_lbs=10000,
+            status=TruckStatus.AVAILABLE,
+            base_location="SRID=4326;POINT(-122.4194 37.7749)",  # PostGIS format: lon lat
+            registration_number="REG-E2E-001",
+            registration_expiry="2026-12-31",
         )
         db_session.add(truck)
 
@@ -94,7 +98,7 @@ class TestEndToEndBookingWorkflow:
         4. Frontend receives confirmation
         5. User can retrieve booking details
         """
-        move_date = datetime.utcnow() + timedelta(days=2)
+        move_date = datetime.now(UTC) + timedelta(days=2)
 
         # Step 1: Simulate frontend form submission
         booking_payload = self._create_booking_data(
@@ -125,9 +129,9 @@ class TestEndToEndBookingWorkflow:
         create_response = await client.post("/api/v1/bookings", json=booking_payload)
 
         # Step 3: Verify booking was created successfully
-        assert (
-            create_response.status_code == 200
-        ), f"Failed to create booking: {create_response.text}"
+        assert create_response.status_code == 201, (
+            f"Failed to create booking: {create_response.text}"
+        )
 
         booking_data = create_response.json()
 
@@ -143,7 +147,7 @@ class TestEndToEndBookingWorkflow:
         assert "piano" in booking_data["special_items"]
         assert "antiques" in booking_data["special_items"]
         assert booking_data["customer_notes"] == "Please call 30 minutes before arrival"
-        assert booking_data["status"] == "PENDING"
+        assert booking_data["status"] == "confirmed"
         assert "id" in booking_data
 
         booking_id = booking_data["id"]
@@ -182,7 +186,7 @@ class TestEndToEndBookingWorkflow:
 
     async def test_booking_with_stairs_and_special_items(self, client, setup_test_environment):
         """Test pricing calculation with stairs and special items."""
-        move_date = datetime.utcnow() + timedelta(days=1)
+        move_date = datetime.now(UTC) + timedelta(days=1)
 
         booking_payload = self._create_booking_data(
             setup_test_environment,
@@ -210,7 +214,7 @@ class TestEndToEndBookingWorkflow:
 
         response = await client.post("/api/v1/bookings", json=booking_payload)
 
-        assert response.status_code == 200
+        assert response.status_code == 201
         booking = response.json()
 
         # Verify booking details
@@ -233,23 +237,25 @@ class TestEndToEndBookingWorkflow:
 
     async def test_list_bookings_endpoint(self, client, setup_test_environment):
         """Test listing bookings (what dashboard would use)."""
-        # Create a few bookings
-        move_date = datetime.utcnow() + timedelta(days=1)
+        # Create a few bookings at different times to avoid conflicts
+        base_date = datetime.now(UTC) + timedelta(days=1)
 
         for i in range(3):
+            # Space bookings 1 day apart to avoid conflicts
+            move_date = base_date + timedelta(days=i)
             booking_payload = self._create_booking_data(
                 setup_test_environment,
                 customer_name=f"Customer {i}",
                 customer_email=f"customer{i}@example.com",
                 customer_phone=f"+1415555000{i}",
                 move_date=move_date.isoformat(),
-                pickup_address=f"{i*100} Test St",
+                pickup_address=f"{i * 100} Test St",
                 pickup_city="San Francisco",
                 pickup_state="CA",
                 pickup_zip="94102",
                 pickup_floors=0,
                 has_elevator_pickup=True,
-                dropoff_address=f"{i*200} Test Ave",
+                dropoff_address=f"{i * 200} Test Ave",
                 dropoff_city="Oakland",
                 dropoff_state="CA",
                 dropoff_zip="94601",
@@ -261,7 +267,7 @@ class TestEndToEndBookingWorkflow:
             )
 
             response = await client.post("/api/v1/bookings", json=booking_payload)
-            assert response.status_code == 200
+            assert response.status_code == 201
 
         # List endpoint requires authentication (returns 403 without auth)
         list_response = await client.get("/api/v1/bookings")
