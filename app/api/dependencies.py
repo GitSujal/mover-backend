@@ -82,6 +82,38 @@ async def get_current_active_user(
     return current_user
 
 
+async def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(HTTPBearer(auto_error=False)),
+    db: AsyncSession = Depends(get_db),
+) -> User | None:
+    """
+    Optional dependency to get current authenticated user.
+
+    Returns None if no credentials provided instead of raising an error.
+    """
+    if not credentials:
+        return None
+
+    token = credentials.credentials
+    user_id = verify_token(token, token_type="access")
+
+    if not user_id:
+        return None
+
+    # Get user from database
+    stmt = select(User).where(User.id == UUID(user_id))
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user or not user.is_active:
+        return None
+
+    # Set RLS context for this request
+    await set_rls_context(db, org_id=str(user.org_id), user_id=str(user.id))
+
+    return user
+
+
 async def require_role(
     required_role: UserRole,
     current_user: User = Depends(get_current_active_user),
@@ -118,17 +150,15 @@ async def require_role(
 async def get_current_customer_session(
     session_token: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
-) -> CustomerSession:
+) -> CustomerSession | None:
     """
     Dependency to get current customer session.
 
     Validates session token from cookie and returns customer session.
+    Returns None if no session token provided (for optional authentication).
     """
     if not session_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No session token provided",
-        )
+        return None
 
     # Check Redis cache first
     cached_session = await redis_cache.get_customer_session(session_token)
