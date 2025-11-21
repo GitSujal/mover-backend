@@ -24,6 +24,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routes import (
+    analytics,
     auth,
     booking_status,
     bookings,
@@ -377,6 +378,7 @@ app.mount("/metrics", metrics_app)
 
 
 # Include API routers
+app.include_router(analytics.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(bookings.router, prefix="/api/v1")
 app.include_router(booking_status.router, prefix="/api/v1")
