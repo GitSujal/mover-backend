@@ -33,6 +33,7 @@ from app.api.routes import (
     invoices,
     movers,
     ratings,
+    verification,
 )
 from app.core.config import settings
 from app.core.database import close_db, get_engine
@@ -382,6 +383,7 @@ app.include_router(documents.router, prefix="/api/v1")
 app.include_router(invoices.router, prefix="/api/v1")
 app.include_router(movers.router, prefix="/api/v1")
 app.include_router(ratings.router, prefix="/api/v1")
+app.include_router(verification.router, prefix="/api/v1")
 app.include_router(driver_assignment.router, prefix="/api/v1")
 
 
