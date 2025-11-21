@@ -3,7 +3,7 @@
 import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { bookingAPI } from '@/lib/api/bookings';
+import { bookingAPI } from '@/lib/api/booking-api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency, formatDateTime, formatPhoneNumber } from '@/lib/utils';

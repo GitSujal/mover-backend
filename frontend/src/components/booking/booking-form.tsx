@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { bookingFormSchema, type BookingFormData } from '@/lib/validations/booking';
-import { bookingAPI } from '@/lib/api/bookings';
+import { bookingAPI } from '@/lib/api/booking-api';
 import { Button } from '@/components/ui/button';
 import { CustomerInfoStep } from './steps/customer-info-step';
 import { PickupDetailsStep } from './steps/pickup-details-step';
@@ -29,7 +29,7 @@ export function BookingForm() {
   const [currentStep, setCurrentStep] = useState(0);
 
   const form = useForm<BookingFormData>({
-    resolver: zodResolver(bookingFormSchema),
+    resolver: zodResolver(bookingSchema),
     mode: 'onChange',
     defaultValues: {
       customer_name: '',
