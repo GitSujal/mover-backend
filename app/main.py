@@ -28,6 +28,7 @@ from app.api.routes import (
     booking_status,
     bookings,
     cancellation,
+    documents,
     driver_assignment,
     invoices,
     movers,
@@ -377,6 +378,7 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(bookings.router, prefix="/api/v1")
 app.include_router(booking_status.router, prefix="/api/v1")
 app.include_router(cancellation.router, prefix="/api/v1")
+app.include_router(documents.router, prefix="/api/v1")
 app.include_router(invoices.router, prefix="/api/v1")
 app.include_router(movers.router, prefix="/api/v1")
 app.include_router(ratings.router, prefix="/api/v1")
