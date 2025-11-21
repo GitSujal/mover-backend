@@ -1,6 +1,7 @@
 """Document verification API endpoints."""
 
 import logging
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
