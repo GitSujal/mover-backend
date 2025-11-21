@@ -10,11 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
+# Import all models to ensure tables are created
+from app import models  # noqa: F401
 from app.core.database import Base, get_db
 from app.main import app
-
-# Import all models to ensure tables are created
-import app.models  # noqa: F401
 
 # Test database URL
 TEST_DATABASE_URL = "postgresql+asyncpg://movehub:test_password@localhost:5432/movehub_test"
