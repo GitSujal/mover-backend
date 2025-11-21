@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { WizardStepper } from "@/components/booking/WizardStepper";
-import { Step1MoveDetails } from "@/components/booking/Step1MoveDetails";
-import { Step2Inventory } from "@/components/booking/Step2Inventory";
-import { Step3Quote } from "@/components/booking/Step3Quote";
-import { Step4Review } from "@/components/booking/Step4Review";
+import { useState } from 'react';
+import { WizardStepper } from '@/components/booking/WizardStepper';
+import { Step1MoveDetails } from '@/components/booking/Step1MoveDetails';
+import { Step2Inventory } from '@/components/booking/Step2Inventory';
+import { Step3Quote } from '@/components/booking/Step3Quote';
+import { Step4Review } from '@/components/booking/Step4Review';
 
-const STEPS = ["Move Details", "Inventory", "Get Quote", "Review & Book"];
+const STEPS = ['Move Details', 'Inventory', 'Get Quote', 'Review & Book'];
 
 export default function BookPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -34,22 +34,12 @@ export default function BookPage() {
             <Step1MoveDetails onNext={handleNext} defaultValues={bookingData} />
           )}
           {currentStep === 2 && (
-            <Step2Inventory
-              onNext={handleNext}
-              onBack={handleBack}
-              defaultValues={bookingData}
-            />
+            <Step2Inventory onNext={handleNext} onBack={handleBack} defaultValues={bookingData} />
           )}
           {currentStep === 3 && (
-            <Step3Quote
-              onNext={handleNext}
-              onBack={handleBack}
-              bookingData={bookingData}
-            />
+            <Step3Quote onNext={handleNext} onBack={handleBack} bookingData={bookingData} />
           )}
-          {currentStep === 4 && (
-            <Step4Review onBack={handleBack} bookingData={bookingData} />
-          )}
+          {currentStep === 4 && <Step4Review onBack={handleBack} bookingData={bookingData} />}
         </div>
       </div>
     </div>

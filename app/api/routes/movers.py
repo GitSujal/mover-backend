@@ -236,7 +236,7 @@ async def create_driver(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
-        )
+        ) from e
 
 
 @router.get("/drivers/{driver_id}", response_model=DriverResponse)

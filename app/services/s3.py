@@ -191,6 +191,53 @@ class S3Service:
         content_type, _ = mimetypes.guess_type(filename)
         return content_type or "application/octet-stream"
 
+    async def upload_file(
+        self,
+        file_data: bytes,
+        filename: str,
+        content_type: str | None = None,
+    ) -> str:
+        """
+        Upload file directly to S3 (server-side upload).
+
+        Args:
+            file_data: File bytes
+            filename: S3 key/filename
+            content_type: MIME type
+
+        Returns:
+            Public URL of uploaded file
+        """
+        with tracer.start_as_current_span("s3.upload_file") as span:
+            span.set_attribute("s3.bucket", self.bucket_name)
+            span.set_attribute("s3.key", filename)
+
+            if not content_type:
+                content_type = self.get_content_type(filename)
+
+            try:
+                async with self.session.client("s3") as s3_client:
+                    await s3_client.put_object(
+                        Bucket=self.bucket_name,
+                        Key=filename,
+                        Body=file_data,
+                        ContentType=content_type,
+                    )
+
+                    # Generate public URL
+                    url = f"https://{self.bucket_name}.s3.{self.region}.amazonaws.com/{filename}"
+
+                    logger.info(
+                        f"Uploaded file to S3: {filename}",
+                        extra={"key": filename, "size": len(file_data)},
+                    )
+
+                    return url
+
+            except ClientError as e:
+                logger.error(f"Failed to upload file: {e}", exc_info=True)
+                raise
+
     async def delete_file(self, file_key: str) -> bool:
         """
         Delete file from S3.

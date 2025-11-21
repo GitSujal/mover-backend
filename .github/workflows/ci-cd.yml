@@ -125,10 +125,29 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           JWT_SECRET_KEY: test-secret-key-for-ci-minimum-32-characters
           ENVIRONMENT: test
+          # AWS/S3
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: test_access_key
+          AWS_SECRET_ACCESS_KEY: test_secret_key
           S3_BUCKET_NAME: test-bucket-ci
+          S3_PRESIGNED_URL_EXPIRE_SECONDS: 300
+          # Stripe
           STRIPE_SECRET_KEY: sk_test_ci_dummy_key
           STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy_key
           STRIPE_WEBHOOK_SECRET: whsec_ci_dummy_secret
+          PLATFORM_FEE_PERCENTAGE: 5.0
+          # Twilio (dummy values for CI)
+          TWILIO_ACCOUNT_SID: test_account_sid
+          TWILIO_AUTH_TOKEN: test_auth_token
+          TWILIO_PHONE_NUMBER: +15555555555
+          # SendGrid (dummy values for CI)
+          SENDGRID_API_KEY: SG.test_api_key
+          SENDGRID_FROM_EMAIL: test@movehub.com
+          SENDGRID_FROM_NAME: MoveHub Test
+          # Rate Limiting
+          RATE_LIMIT_ENABLED: false
+          # File Upload
+          MAX_UPLOAD_SIZE_MB: 10
         run: |
           pytest --cov=app --cov-report=xml --cov-report=term
 

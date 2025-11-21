@@ -62,12 +62,34 @@ services:
 
       # AWS (for local development, use LocalStack or mocked services)
       AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       S3_BUCKET_NAME: movehub-dev-uploads
+      S3_PRESIGNED_URL_EXPIRE_SECONDS: 300
 
       # Stripe (use test keys)
-      STRIPE_SECRET_KEY: sk_test_your_key_here
-      STRIPE_PUBLISHABLE_KEY: pk_test_your_key_here
-      STRIPE_WEBHOOK_SECRET: whsec_your_secret_here
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_your_key_here}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-pk_test_your_key_here}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_your_secret_here}
+      PLATFORM_FEE_PERCENTAGE: 5.0
+
+      # Twilio (SMS notifications)
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER:-}
+
+      # SendGrid (Email notifications)
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL:-noreply@movehub.com}
+      SENDGRID_FROM_NAME: ${SENDGRID_FROM_NAME:-MoveHub}
+
+      # Rate Limiting
+      RATE_LIMIT_ENABLED: true
+      RATE_LIMIT_PER_MINUTE: 60
+
+      # File Upload
+      MAX_UPLOAD_SIZE_MB: 10
+      ALLOWED_UPLOAD_EXTENSIONS: '[".jpg", ".jpeg", ".png", ".pdf"]'
 
       # CORS - Allow all local origins for development
       CORS_ORIGINS: '["http://localhost:3000", "http://127.0.0.1:3000", "http://frontend:3000", "http://localhost:8000", "http://127.0.0.1:8000"]'

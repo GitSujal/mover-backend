@@ -25,6 +25,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import BaseModel
 
 if TYPE_CHECKING:
+    from app.models.driver import Driver
     from app.models.invoice import Invoice
     from app.models.organization import Organization
     from app.models.truck import Truck
@@ -59,6 +60,11 @@ class Booking(BaseModel):
     truck_id: Mapped[UUID] = mapped_column(
         ForeignKey("trucks.id", ondelete="RESTRICT"),
         nullable=False,
+        index=True,
+    )
+    driver_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("drivers.id", ondelete="SET NULL"),
+        nullable=True,
         index=True,
     )
 
@@ -164,6 +170,7 @@ class Booking(BaseModel):
     # Relationships
     organization: Mapped["Organization"] = relationship("Organization")
     truck: Mapped["Truck"] = relationship("Truck", back_populates="bookings")
+    driver: Mapped[Optional["Driver"]] = relationship("Driver")
     invoice: Mapped[Optional["Invoice"]] = relationship(
         "Invoice", back_populates="booking", uselist=False
     )
