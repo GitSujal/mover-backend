@@ -2,13 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Truck, Calendar, Settings, LogOut } from "lucide-react";
+import {
+    LayoutDashboard,
+    Truck,
+    Calendar,
+    Settings,
+    LogOut,
+    BarChart3,
+    FileCheck,
+    MessageSquare,
+    FileText,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
     { name: "Dashboard", href: "/mover", icon: LayoutDashboard },
-    { name: "Fleet Management", href: "/mover/fleet", icon: Truck },
     { name: "Jobs & Schedule", href: "/mover/jobs", icon: Calendar },
+    { name: "Fleet Management", href: "/mover/fleet", icon: Truck },
+    { name: "Analytics", href: "/mover/analytics", icon: BarChart3 },
+    { name: "Verification", href: "/mover/verification", icon: FileCheck },
+    { name: "Support Tickets", href: "/mover/support", icon: MessageSquare },
+    { name: "Invoices", href: "/mover/invoices", icon: FileText },
     { name: "Settings", href: "/mover/settings", icon: Settings },
 ];
 
