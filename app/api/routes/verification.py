@@ -453,20 +453,28 @@ async def send_expiry_reminders(
                 else 0
             )
 
+            # Prepare data
+            expiry_str = (
+                verification.expiry_date.strftime("%B %d, %Y")
+                if verification.expiry_date
+                else "N/A"
+            )
+
+            data = {
+                "organization_name": recipient_name,
+                "insurance_type": verification.document_type.value,
+                "expiry_date": expiry_str,
+                "days_remaining": days_until_expiry,
+                "upload_url": f"https://movehub.com/dashboard/documents/{verification.id}",
+            }
+
             # Send reminder
+            subject, html_content = email_templates.insurance_expiring(data)
+
             await notification_service.send_email(
                 to_email=recipient_email,
-                subject=f"Document Expiring Soon - {verification.document_type.value}",
-                html_content=email_templates.insurance_expiring(
-                    customer_name=recipient_name,
-                    document_type=verification.document_type.value,
-                    expiry_date=(
-                        verification.expiry_date.strftime("%B %d, %Y")
-                        if verification.expiry_date
-                        else "N/A"
-                    ),
-                    days_remaining=days_until_expiry,
-                ),
+                subject=subject,
+                html_content=html_content,
             )
 
             # Mark reminder sent

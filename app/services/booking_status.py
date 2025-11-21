@@ -208,97 +208,111 @@ class BookingStatusService:
             # Send notifications based on transition
             if new_status == BookingStatus.CONFIRMED:
                 # Confirmed: Send to both customer and mover
+                subject, html_content = email_templates.booking_confirmed_customer(booking_details)
                 await notification_service.send_email(
                     to_email=booking.customer_email,
-                    subject=f"Booking Confirmed - {booking.move_date.strftime('%B %d')}",
-                    html_content=email_templates.booking_confirmed_customer(
-                        customer_name=booking.customer_name,
-                        booking_details=booking_details,
-                    ),
+                    subject=subject,
+                    html_content=html_content,
                 )
+
+                sms_data = {
+                    "customer_name": booking.customer_name,
+                    "move_date": booking.move_date.strftime("%b %d"),
+                    "mover_name": mover_name,
+                    "short_url": f"https://mv.hb/b/{str(booking.id)[:8]}",
+                }
                 await notification_service.send_sms(
                     to_phone=booking.customer_phone,
-                    message=sms_templates.booking_confirmed(
-                        customer_name=booking.customer_name,
-                        move_date=booking.move_date.strftime("%b %d"),
-                        booking_id=str(booking.id)[:8],
-                    ),
+                    message=sms_templates.booking_confirmed(sms_data),
                 )
+
                 if mover_email:
+                    subject, html_content = email_templates.booking_confirmed_mover(booking_details)
                     await notification_service.send_email(
                         to_email=mover_email,
-                        subject=f"New Booking - {booking.move_date.strftime('%B %d')}",
-                        html_content=email_templates.booking_confirmed_mover(
-                            mover_name=mover_name,
-                            booking_details=booking_details,
-                        ),
+                        subject=subject,
+                        html_content=html_content,
                     )
 
             elif new_status == BookingStatus.IN_PROGRESS:
                 # Driver arrived: Notify customer
+                arrived_data = {
+                    "customer_name": booking.customer_name,
+                    "driver_name": booking_details["driver_name"],
+                    "driver_phone": getattr(booking.driver, "phone", "N/A"),
+                    "truck_info": booking_details["truck_name"],
+                }
+
+                subject, html_content = email_templates.driver_arrived(arrived_data)
                 await notification_service.send_email(
                     to_email=booking.customer_email,
-                    subject="Your driver has arrived!",
-                    html_content=email_templates.driver_arrived(
-                        customer_name=booking.customer_name,
-                        driver_name=booking_details["driver_name"],
-                        booking_details=booking_details,
-                    ),
+                    subject=subject,
+                    html_content=html_content,
                 )
+
                 await notification_service.send_sms(
                     to_phone=booking.customer_phone,
-                    message=sms_templates.driver_arrived(
-                        customer_name=booking.customer_name,
-                        driver_name=booking_details["driver_name"],
-                    ),
+                    message=sms_templates.driver_arrived(arrived_data),
                 )
 
             elif new_status == BookingStatus.COMPLETED:
                 # Job completed: Send to customer with rating request
+                completed_data = {
+                    "customer_name": booking.customer_name,
+                    "completed_at": datetime.utcnow().strftime("%I:%M %p"),
+                    "actual_duration": "N/A",  # TODO: Calculate actual duration
+                    "rating_url": f"https://movehub.com/bookings/{booking.id}/rate",
+                }
+
+                subject, html_content = email_templates.job_completed(completed_data)
                 await notification_service.send_email(
                     to_email=booking.customer_email,
-                    subject="Move completed - Rate your experience",
-                    html_content=email_templates.job_completed(
-                        customer_name=booking.customer_name,
-                        booking_details=booking_details,
-                        rating_link=f"https://movehub.com/bookings/{booking.id}/rate",
-                    ),
+                    subject=subject,
+                    html_content=html_content,
                 )
+
                 await notification_service.send_sms(
                     to_phone=booking.customer_phone,
-                    message=sms_templates.job_completed(
-                        customer_name=booking.customer_name,
-                        booking_id=str(booking.id)[:8],
-                    ),
+                    message=sms_templates.move_completed(completed_data),
                 )
 
             elif new_status == BookingStatus.CANCELLED:
                 # Cancellation: Notify both parties
+                cancel_data = {
+                    "customer_name": booking.customer_name,
+                    "move_date": booking.move_date.strftime("%B %d, %Y"),
+                    "original_amount": float(booking.estimated_amount),
+                    "refund_amount": 0.0,  # TODO: Get actual refund amount
+                    "cancellation_reason": "Cancelled via status update",
+                    "refund_processing_time": "5-7 business days",
+                    "rebook_url": f"https://movehub.com/book?retry={booking.id}",
+                    "offer_rebook": True,
+                    "short_url": f"https://mv.hb/c/{str(booking.id)[:8]}",
+                }
+
+                subject, html_content = email_templates.cancellation_confirmed(cancel_data)
                 await notification_service.send_email(
                     to_email=booking.customer_email,
-                    subject="Booking Cancelled",
-                    html_content=email_templates.cancellation_confirmed(
-                        customer_name=booking.customer_name,
-                        booking_details=booking_details,
-                        refund_info="Refund will be processed within 5-7 business days.",
-                    ),
+                    subject=subject,
+                    html_content=html_content,
                 )
+
                 await notification_service.send_sms(
                     to_phone=booking.customer_phone,
-                    message=sms_templates.booking_cancelled(
-                        customer_name=booking.customer_name,
-                        move_date=booking.move_date.strftime("%b %d"),
-                    ),
+                    message=sms_templates.cancellation_confirmed(cancel_data),
                 )
+
                 if mover_email:
+                    mover_cancel_data = cancel_data.copy()
+                    mover_cancel_data["customer_name"] = mover_name
+
+                    subject, html_content = email_templates.cancellation_confirmed(
+                        mover_cancel_data
+                    )
                     await notification_service.send_email(
                         to_email=mover_email,
-                        subject=f"Booking Cancelled - {booking.move_date.strftime('%B %d')}",
-                        html_content=email_templates.cancellation_confirmed(
-                            customer_name=mover_name,
-                            booking_details=booking_details,
-                            refund_info="Customer will receive a full refund.",
-                        ),
+                        subject=subject,
+                        html_content=html_content,
                     )
 
             logger.info(

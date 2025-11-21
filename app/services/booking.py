@@ -23,6 +23,7 @@ from app.schemas.booking import (
     AvailabilitySlot,
     BookingCreate,
     BookingResponse,
+    BookingUpdate,
 )
 from app.services.pricing import PricingService
 
@@ -301,7 +302,7 @@ class BookingService:
     async def update_booking(
         db: AsyncSession,
         booking: Booking,
-        update_data: BookingCreate,  # Using BookingCreate as a proxy for update data, but ideally should be BookingUpdate
+        update_data: BookingUpdate,
     ) -> Booking:
         """
         Update booking with state transition validation.

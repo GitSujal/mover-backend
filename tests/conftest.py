@@ -136,3 +136,130 @@ def sample_booking_data() -> dict:
         "has_elevator_dropoff": True,
         "customer_notes": "Handle piano with care",
     }
+
+
+@pytest.fixture
+def auth_headers() -> dict:
+    """Return authentication headers for testing."""
+    return {"Authorization": "Bearer test_token"}
+
+
+@pytest_asyncio.fixture
+async def organization(db_session: AsyncSession, sample_organization_data: dict):
+    """Create an organization in the database."""
+    from app.models.organization import Organization, OrganizationStatus
+
+    org = Organization(**sample_organization_data)
+    org.status = OrganizationStatus.APPROVED
+    db_session.add(org)
+    await db_session.commit()
+    await db_session.refresh(org)
+    return org
+
+
+@pytest.fixture
+def sample_driver_data(organization) -> dict:
+    """Sample driver data for testing."""
+    return {
+        "first_name": "Jane",
+        "last_name": "Doe",
+        "email": "jane@example.com",
+        "phone": "+15551112222",
+        "drivers_license_number": "DL123456",
+        "drivers_license_state": "CA",
+        "drivers_license_expiry": "2030-01-01",
+        "org_id": str(organization.id),
+        "is_verified": True,
+    }
+
+
+@pytest.fixture
+def sample_truck_data(organization) -> dict:
+    """Sample truck data for testing."""
+    return {
+        "license_plate": "TRUCK1",
+        "make": "Ford",
+        "model": "F-150",
+        "year": 2023,
+        "capacity_cubic_feet": 1000,
+        "max_weight_lbs": 5000,
+        "size": "medium",
+        "base_location": {"latitude": 37.7749, "longitude": -122.4194},
+        "registration_number": "REG123456",
+        "registration_expiry": "2030-01-01",
+        "org_id": str(organization.id),
+        "status": "available",
+    }
+
+
+@pytest_asyncio.fixture
+async def driver(db_session: AsyncSession, sample_driver_data: dict):
+    """Create a driver in the database."""
+    from app.models.driver import Driver
+
+    driver = Driver(**sample_driver_data)
+    db_session.add(driver)
+    await db_session.commit()
+    await db_session.refresh(driver)
+    return driver
+
+
+@pytest_asyncio.fixture
+async def truck(db_session: AsyncSession, sample_truck_data: dict):
+    """Create a truck in the database."""
+    from app.models.truck import Truck
+
+    # Create a copy to avoid modifying the fixture data
+    truck_data = sample_truck_data.copy()
+
+    # Convert base_location dict to WKT for DB
+    if isinstance(truck_data["base_location"], dict):
+        lat = truck_data["base_location"]["latitude"]
+        lng = truck_data["base_location"]["longitude"]
+        truck_data["base_location"] = f"POINT({lng} {lat})"
+
+    truck = Truck(**truck_data)
+    db_session.add(truck)
+    await db_session.commit()
+    await db_session.refresh(truck)
+    return truck
+
+
+@pytest.fixture
+def sample_user_data(organization) -> dict:
+    """Sample user data for testing."""
+    from app.models.user import UserRole
+
+    return {
+        "email": "mover@example.com",
+        "hashed_password": "hashed_secret",
+        "first_name": "Mover",
+        "last_name": "Admin",
+        "role": UserRole.ORG_OWNER,
+        "org_id": organization.id,
+        "is_active": True,
+        "is_verified": True,
+    }
+
+
+@pytest_asyncio.fixture
+async def user(db_session: AsyncSession, sample_user_data: dict):
+    """Create a user in the database."""
+    from app.models.user import User
+
+    user = User(**sample_user_data)
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture
+async def authed_client(client: AsyncClient, user):
+    """Create an authenticated client."""
+    from app.api.dependencies import get_current_user
+    from app.main import app
+
+    app.dependency_overrides[get_current_user] = lambda: user
+    yield client
+    app.dependency_overrides.pop(get_current_user, None)

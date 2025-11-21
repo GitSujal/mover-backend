@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import {
   supportAPI,
-  SupportTicketResponse,
   SupportTicketWithComments,
   SupportTicketListResponse,
   IssueStatus,
@@ -15,7 +14,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   MessageSquare,
@@ -294,9 +292,8 @@ export default function SupportPage() {
                   {tickets?.tickets.map((ticket) => (
                     <Card
                       key={ticket.id}
-                      className={`cursor-pointer hover:border-primary transition-colors ${
-                        selectedTicket?.id === ticket.id ? 'border-primary' : ''
-                      }`}
+                      className={`cursor-pointer hover:border-primary transition-colors ${selectedTicket?.id === ticket.id ? 'border-primary' : ''
+                        }`}
                       onClick={() => loadTicketDetails(ticket.id)}
                     >
                       <CardContent className="p-4">
@@ -481,11 +478,10 @@ export default function SupportPage() {
                     {selectedTicket.comments.map((comment) => (
                       <div
                         key={comment.id}
-                        className={`p-3 rounded-lg ${
-                          comment.is_internal
-                            ? 'bg-yellow-50 border border-yellow-200'
-                            : 'bg-gray-50'
-                        }`}
+                        className={`p-3 rounded-lg ${comment.is_internal
+                          ? 'bg-yellow-50 border border-yellow-200'
+                          : 'bg-gray-50'
+                          }`}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <p className="text-sm font-medium">

@@ -19,7 +19,7 @@ dev: ## Run development server with auto-reload
 	uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 test: ## Run all tests with coverage
-	pytest --cov=app --cov-report=term-missing --cov-report=html
+	uv run pytest --cov=app --cov-report=term-missing --cov-report=html
 
 test-unit: ## Run only unit tests
 	pytest -m unit --cov=app
@@ -28,9 +28,9 @@ test-integration: ## Run only integration tests
 	pytest -m integration
 
 lint: ## Run all linters
-	black --check app/ tests/
-	ruff check app/ tests/
-	mypy app/
+	uv run black --check app/ tests/
+	uv run ruff check app/ tests/
+	uv run mypy app/
 
 format: ## Format code with Black and Ruff
 	black app/ tests/

@@ -224,7 +224,7 @@ class CancellationService:
                         },
                     )
 
-                except stripe.error.StripeError as e:
+                except stripe.StripeError as e:
                     logger.error(
                         f"Stripe refund failed for booking {booking_id}: {e}",
                         exc_info=True,
@@ -300,48 +300,39 @@ class CancellationService:
             email_templates = EmailTemplates()
             sms_templates = SMSTemplates()
 
-            # Prepare booking details
-            booking_details = {
-                "booking_id": str(booking.id),
+            # Prepare cancellation data
+            cancellation_data = {
                 "customer_name": booking.customer_name,
                 "move_date": booking.move_date.strftime("%B %d, %Y at %I:%M %p"),
                 "pickup_address": booking.pickup_address,
                 "dropoff_address": booking.dropoff_address,
                 "estimated_amount": f"{booking.estimated_amount:.2f}",
+                "booking_id": str(booking.id),
+                "original_amount": cancellation.original_amount,
+                "refund_amount": cancellation.refund_amount,
+                "cancellation_reason": cancellation.cancellation_reason,
+                "refund_processing_time": "5-7 business days",
+                "rebook_url": f"https://movehub.com/book?retry={booking.id}",
+                "offer_rebook": cancellation.rebook_offered,
             }
 
-            # Prepare refund info
-            if refund_percentage == 100:
-                refund_message = "You will receive a full refund"
-            elif refund_percentage > 0:
-                refund_message = (
-                    f"You will receive a {refund_percentage}% refund "
-                    f"(${cancellation.refund_amount:.2f})"
-                )
-            else:
-                refund_message = (
-                    "No refund will be issued due to late cancellation "
-                    "(less than 24 hours before move)"
-                )
-
-            refund_info = f"{refund_message}. Refunds are processed within 5-7 business days."
-
             # Send customer notification
+            subject, html_content = email_templates.cancellation_confirmed(cancellation_data)
+
             await notification_service.send_email(
                 to_email=booking.customer_email,
-                subject=f"Booking Cancelled - {booking.move_date.strftime('%B %d')}",
-                html_content=email_templates.cancellation_confirmed(
-                    customer_name=booking.customer_name,
-                    booking_details=booking_details,
-                    refund_info=refund_info,
-                ),
+                subject=subject,
+                html_content=html_content,
             )
 
             await notification_service.send_sms(
                 to_phone=booking.customer_phone,
-                message=sms_templates.booking_cancelled(
-                    customer_name=booking.customer_name,
-                    move_date=booking.move_date.strftime("%b %d"),
+                message=sms_templates.cancellation_confirmed(
+                    {
+                        "move_date": booking.move_date.strftime("%b %d"),
+                        "refund_amount": cancellation.refund_amount,
+                        "short_url": f"https://mv.hb/c/{str(cancellation.id)[:8]}",
+                    }
                 ),
             )
 
@@ -353,14 +344,16 @@ class CancellationService:
                 mover_email = booking.organization.contact_email
                 mover_name = booking.organization.business_name
 
+                # Update data for mover
+                mover_data = cancellation_data.copy()
+                mover_data["customer_name"] = mover_name
+
+                subject, html_content = email_templates.cancellation_confirmed(mover_data)
+
                 await notification_service.send_email(
                     to_email=mover_email,
-                    subject=f"Booking Cancelled - {booking.move_date.strftime('%B %d')}",
-                    html_content=email_templates.cancellation_confirmed(
-                        customer_name=mover_name,
-                        booking_details=booking_details,
-                        refund_info=f"Customer cancellation: {cancellation.cancellation_reason}",
-                    ),
+                    subject=subject,
+                    html_content=html_content,
                 )
 
             logger.info(f"Cancellation notifications sent for booking {booking.id}")

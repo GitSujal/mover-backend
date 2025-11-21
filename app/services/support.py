@@ -123,28 +123,34 @@ class SupportTicketService:
         email_templates = EmailTemplates()
 
         # Notify customer
+        customer_data = {
+            "customer_name": ticket.reporter_name,
+            "ticket_id": str(ticket.id),
+            "issue_type": ticket.issue_type.value,
+            "description": ticket.description,
+        }
+        subject, html_content = email_templates.support_ticket_created(customer_data)
+
         await notification_service.send_email(
             to_email=ticket.reporter_email,
-            subject=f"Support Ticket Created - #{ticket.id}",
-            html_content=email_templates.support_ticket_created(
-                customer_name=ticket.reporter_name,
-                ticket_id=str(ticket.id),
-                issue_type=ticket.issue_type.value,
-                description=ticket.description,
-            ),
+            subject=subject,
+            html_content=html_content,
         )
 
         # Notify mover organization
         if booking.organization:
+            mover_data = {
+                "customer_name": booking.organization.business_name,
+                "ticket_id": str(ticket.id),
+                "issue_type": ticket.issue_type.value,
+                "description": ticket.description,
+            }
+            subject, html_content = email_templates.support_ticket_created(mover_data)
+
             await notification_service.send_email(
                 to_email=booking.organization.contact_email,
-                subject=f"New Support Ticket - #{ticket.id}",
-                html_content=email_templates.support_ticket_created(
-                    customer_name=booking.organization.business_name,
-                    ticket_id=str(ticket.id),
-                    issue_type=ticket.issue_type.value,
-                    description=ticket.description,
-                ),
+                subject=subject,
+                html_content=html_content,
             )
 
     @staticmethod
@@ -305,7 +311,7 @@ class SupportTicketService:
             <p><strong>Ticket ID:</strong> {ticket.id}</p>
             <p><strong>Issue Type:</strong> {ticket.issue_type.value}</p>
             <p><strong>Resolution:</strong> {resolution_message}</p>
-            {f'<p><strong>Refund Amount:</strong> ${ticket.refund_amount:.2f}</p>' if ticket.refund_amount else ''}
+            {f"<p><strong>Refund Amount:</strong> ${ticket.refund_amount:.2f}</p>" if ticket.refund_amount else ""}
             <p>Thank you for your patience.</p>
         </body>
         </html>

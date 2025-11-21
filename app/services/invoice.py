@@ -5,11 +5,17 @@ import logging
 from datetime import datetime, timedelta
 from uuid import UUID
 
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import inch
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.lib import colors  # type: ignore
+from reportlab.lib.pagesizes import letter  # type: ignore
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet  # type: ignore
+from reportlab.lib.units import inch  # type: ignore
+from reportlab.platypus import (  # type: ignore
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -470,13 +476,12 @@ class InvoiceService:
                 "pdf_url": invoice.pdf_url or "#",
             }
 
+            subject, html_content = email_templates.invoice_sent(booking_details)
+
             await notification_service.send_email(
                 to_email=booking.customer_email,
-                subject=f"Invoice {invoice.invoice_number} - MoveHub",
-                html_content=email_templates.invoice_sent(
-                    customer_name=booking.customer_name,
-                    booking_details=booking_details,
-                ),
+                subject=subject,
+                html_content=html_content,
             )
 
             logger.info(f"Invoice email sent: {invoice.invoice_number} to {booking.customer_email}")

@@ -75,9 +75,9 @@ class CalendarService:
             for booking in bookings:
                 # Get driver info if assigned
                 driver_name = None
-                if booking.assigned_driver_id:
+                if booking.driver_id:
                     driver_result = await db.execute(
-                        select(Driver).where(Driver.id == booking.assigned_driver_id)
+                        select(Driver).where(Driver.id == booking.driver_id)
                     )
                     driver = driver_result.scalar_one_or_none()
                     if driver:
@@ -85,9 +85,9 @@ class CalendarService:
 
                 # Get truck info if assigned
                 truck_identifier = None
-                if booking.assigned_truck_id:
+                if booking.truck_id:
                     truck_result = await db.execute(
-                        select(Truck).where(Truck.id == booking.assigned_truck_id)
+                        select(Truck).where(Truck.id == booking.truck_id)
                     )
                     truck = truck_result.scalar_one_or_none()
                     if truck:
@@ -96,7 +96,7 @@ class CalendarService:
                 calendar_items.append(
                     BookingCalendarItem(
                         id=booking.id,
-                        booking_number=booking.booking_number,
+                        booking_number=str(booking.id),  # Use ID as booking number
                         customer_name=booking.customer_name,
                         customer_phone=booking.customer_phone,
                         move_date=booking.move_date,
@@ -104,11 +104,11 @@ class CalendarService:
                         dropoff_address=booking.dropoff_address,
                         estimated_duration_hours=float(booking.estimated_duration_hours),
                         status=booking.status,
-                        assigned_driver_id=booking.assigned_driver_id,
+                        assigned_driver_id=booking.driver_id,
                         assigned_driver_name=driver_name,
-                        assigned_truck_id=booking.assigned_truck_id,
+                        assigned_truck_id=booking.truck_id,
                         assigned_truck_identifier=truck_identifier,
-                        notes=booking.notes,
+                        notes=booking.customer_notes,
                     )
                 )
 
@@ -157,7 +157,7 @@ class CalendarService:
                 select(Booking)
                 .where(
                     and_(
-                        Booking.assigned_driver_id == driver_id,
+                        Booking.driver_id == driver_id,
                         Booking.move_date >= start_date,
                         Booking.move_date < end_date,
                         Booking.status.in_(
@@ -187,7 +187,7 @@ class CalendarService:
                         driver_name=driver.name,
                         driver_phone=driver.phone,
                         booking_id=booking.id,
-                        booking_number=booking.booking_number,
+                        booking_number=str(booking.id),
                         start_time=booking.move_date,
                         end_time=end_time,
                         status="booked",
@@ -232,7 +232,7 @@ class CalendarService:
                 select(Booking)
                 .where(
                     and_(
-                        Booking.assigned_truck_id == truck_id,
+                        Booking.truck_id == truck_id,
                         Booking.move_date >= start_date,
                         Booking.move_date < end_date,
                         Booking.status.in_(
@@ -261,7 +261,7 @@ class CalendarService:
                         truck_id=truck.id,
                         truck_identifier=truck.license_plate,
                         booking_id=booking.id,
-                        booking_number=booking.booking_number,
+                        booking_number=str(booking.id),
                         start_time=booking.move_date,
                         end_time=end_time,
                         status="booked",
@@ -300,7 +300,7 @@ class CalendarService:
                 select(Driver).where(
                     and_(
                         Driver.org_id == org_id,
-                        Driver.is_active == True,  # noqa: E712
+                        Driver.is_verified == True,  # noqa: E712
                     )
                 )
             )
@@ -311,7 +311,7 @@ class CalendarService:
                 select(Truck).where(
                     and_(
                         Truck.org_id == org_id,
-                        Truck.is_active == True,  # noqa: E712
+                        Truck.status != "inactive",  # Check status instead of is_active
                     )
                 )
             )
@@ -350,12 +350,8 @@ class CalendarService:
             conflicting_bookings = conflict_result.scalars().all()
 
             # Get busy driver and truck IDs
-            busy_driver_ids = {
-                b.assigned_driver_id for b in conflicting_bookings if b.assigned_driver_id
-            }
-            busy_truck_ids = {
-                b.assigned_truck_id for b in conflicting_bookings if b.assigned_truck_id
-            }
+            busy_driver_ids = {b.driver_id for b in conflicting_bookings if b.driver_id}
+            busy_truck_ids = {b.truck_id for b in conflicting_bookings if b.truck_id}
 
             # Find available resources
             available_driver_ids = [d.id for d in all_drivers if d.id not in busy_driver_ids]

@@ -73,5 +73,10 @@ class Driver(BaseModel):
         """Get driver's full name."""
         return f"{self.first_name} {self.last_name}"
 
+    @property
+    def name(self) -> str:
+        """Alias for full_name."""
+        return self.full_name
+
     def __repr__(self) -> str:
         return f"<Driver(id={self.id}, name={self.full_name}, verified={self.is_verified})>"

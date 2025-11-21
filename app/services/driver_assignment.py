@@ -56,17 +56,17 @@ class DriverAssignmentService:
             span.set_attribute("assigned_by", assigned_by)
 
             # Get booking
-            stmt = select(Booking).where(Booking.id == booking_id)
-            result = await db.execute(stmt)
-            booking = result.scalar_one_or_none()
+            booking_stmt = select(Booking).where(Booking.id == booking_id)
+            booking_result = await db.execute(booking_stmt)
+            booking = booking_result.scalar_one_or_none()
 
             if not booking:
                 raise DriverAssignmentError("Booking not found")
 
             # Get driver
-            stmt = select(Driver).where(Driver.id == driver_id)
-            result = await db.execute(stmt)
-            driver = result.scalar_one_or_none()
+            driver_stmt = select(Driver).where(Driver.id == driver_id)
+            driver_result = await db.execute(driver_stmt)
+            driver = driver_result.scalar_one_or_none()
 
             if not driver:
                 raise DriverAssignmentError("Driver not found")
@@ -139,9 +139,9 @@ class DriverAssignmentService:
             span.set_attribute("booking_id", str(booking_id))
 
             # Get booking
-            stmt = select(Booking).where(Booking.id == booking_id)
-            result = await db.execute(stmt)
-            booking = result.scalar_one_or_none()
+            booking_stmt = select(Booking).where(Booking.id == booking_id)
+            booking_result = await db.execute(booking_stmt)
+            booking = booking_result.scalar_one_or_none()
 
             if not booking:
                 raise DriverAssignmentError("Booking not found")
@@ -151,14 +151,14 @@ class DriverAssignmentService:
                 return booking
 
             # Get all verified drivers from organization
-            stmt = select(Driver).where(
+            drivers_stmt = select(Driver).where(
                 and_(
                     Driver.org_id == booking.org_id,
                     Driver.is_verified == True,  # noqa: E712
                 )
             )
-            result = await db.execute(stmt)
-            drivers = list(result.scalars().all())
+            drivers_result = await db.execute(drivers_stmt)
+            drivers = list(drivers_result.scalars().all())
 
             if not drivers:
                 raise DriverAssignmentError("No verified drivers available in organization")

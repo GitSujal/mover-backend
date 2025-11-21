@@ -123,7 +123,8 @@ class AnalyticsService:
             drivers = result.scalars().all()
 
             total = len(drivers)
-            active = sum(1 for d in drivers if d.is_active)
+            total = len(drivers)
+            active = sum(1 for d in drivers if d.is_verified)
             inactive = total - active
 
             # Get booking counts per driver
@@ -132,7 +133,7 @@ class AnalyticsService:
                 count_result = await db.execute(
                     select(func.count(Booking.id)).where(
                         and_(
-                            Booking.assigned_driver_id == driver.id,
+                            Booking.driver_id == driver.id,
                             Booking.status == BookingStatus.COMPLETED,
                         )
                     )
@@ -149,7 +150,9 @@ class AnalyticsService:
                 driver = next(d for d in drivers if d.id == driver_id)
                 # Get average rating
                 rating_result = await db.execute(
-                    select(func.avg(Rating.rating)).where(Rating.driver_id == driver_id)
+                    select(func.avg(Rating.overall_rating))
+                    .join(Booking)
+                    .where(Booking.driver_id == driver_id)
                 )
                 avg_rating = rating_result.scalar_one() or 0
 
@@ -193,7 +196,7 @@ class AnalyticsService:
             trucks = result.scalars().all()
 
             total = len(trucks)
-            active = sum(1 for t in trucks if t.is_active)
+            active = sum(1 for t in trucks if t.status != "inactive")
             inactive = total - active
 
             # Calculate utilization (simplified - actual would need more complex logic)
@@ -267,21 +270,21 @@ class AnalyticsService:
                 )
 
             # Calculate distribution
-            five_star = sum(1 for r in ratings if r.rating == 5)
-            four_star = sum(1 for r in ratings if r.rating == 4)
-            three_star = sum(1 for r in ratings if r.rating == 3)
-            two_star = sum(1 for r in ratings if r.rating == 2)
-            one_star = sum(1 for r in ratings if r.rating == 1)
+            five_star = sum(1 for r in ratings if r.overall_rating == 5)
+            four_star = sum(1 for r in ratings if r.overall_rating == 4)
+            three_star = sum(1 for r in ratings if r.overall_rating == 3)
+            two_star = sum(1 for r in ratings if r.overall_rating == 2)
+            one_star = sum(1 for r in ratings if r.overall_rating == 1)
 
-            average_rating = sum(r.rating for r in ratings) / total
+            average_rating = sum(r.overall_rating for r in ratings) / total
 
             # Get recent reviews (last 5 with comments)
-            reviews_with_comments = [r for r in ratings if r.comment]
+            reviews_with_comments = [r for r in ratings if r.review_text]
             reviews_with_comments.sort(key=lambda x: x.created_at, reverse=True)
             recent_reviews = [
                 {
-                    "rating": r.rating,
-                    "comment": r.comment,
+                    "rating": r.overall_rating,
+                    "comment": r.review_text,
                     "created_at": r.created_at.isoformat(),
                     "booking_id": str(r.booking_id),
                 }
@@ -334,7 +337,7 @@ class AnalyticsService:
             open_count = sum(1 for t in tickets if t.status == IssueStatus.OPEN)
             in_progress = sum(1 for t in tickets if t.status == IssueStatus.IN_PROGRESS)
             resolved = sum(1 for t in tickets if t.status == IssueStatus.RESOLVED)
-            escalated = sum(1 for t in tickets if t.is_escalated)
+            escalated = sum(1 for t in tickets if t.status == IssueStatus.ESCALATED)
 
             # Calculate average resolution time
             resolved_tickets = [
@@ -342,19 +345,29 @@ class AnalyticsService:
             ]
             average_resolution_hours = 0.0
             if resolved_tickets:
-                total_hours = sum(
-                    (t.resolved_at - t.created_at).total_seconds() / 3600 for t in resolved_tickets
-                )
+                total_hours = 0.0
+                for t in resolved_tickets:
+                    if t.resolved_at:
+                        resolved_dt = datetime.fromisoformat(t.resolved_at)
+                        # Ensure created_at is naive or aware matching resolved_dt
+                        created_at = t.created_at
+                        if resolved_dt.tzinfo is None and created_at.tzinfo is not None:
+                            created_at = created_at.replace(tzinfo=None)
+                        elif resolved_dt.tzinfo is not None and created_at.tzinfo is None:
+                            resolved_dt = resolved_dt.replace(tzinfo=None)
+
+                        total_hours += (resolved_dt - created_at).total_seconds() / 3600
+
                 average_resolution_hours = total_hours / len(resolved_tickets)
 
             # Distribution by type
-            ticket_by_type = {}
+            ticket_by_type: dict[str, int] = {}
             for ticket in tickets:
                 type_name = ticket.issue_type.value
                 ticket_by_type[type_name] = ticket_by_type.get(type_name, 0) + 1
 
             # Distribution by priority
-            ticket_by_priority = {}
+            ticket_by_priority: dict[str, int] = {}
             for ticket in tickets:
                 priority_name = ticket.priority.value
                 ticket_by_priority[priority_name] = ticket_by_priority.get(priority_name, 0) + 1
@@ -561,7 +574,7 @@ class AnalyticsService:
 
                 # Average rating for this day
                 rating_result = await db.execute(
-                    select(func.avg(Rating.rating)).where(
+                    select(func.avg(Rating.overall_rating)).where(
                         and_(
                             Rating.org_id == org_id,
                             Rating.created_at >= current_date,

@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_active_user
@@ -101,8 +101,12 @@ async def list_trucks(
     return [
         TruckResponse(
             **truck.__dict__,
-            base_location_lat=db.scalar(truck.base_location.ST_Y()) if truck.base_location else 0.0,
-            base_location_lng=db.scalar(truck.base_location.ST_X()) if truck.base_location else 0.0,
+            base_location_lat=(
+                db.scalar(func.ST_Y(truck.base_location)) if truck.base_location else 0.0
+            ),
+            base_location_lng=(
+                db.scalar(func.ST_X(truck.base_location)) if truck.base_location else 0.0
+            ),
         )
         for truck in trucks
     ]
@@ -154,7 +158,6 @@ async def get_truck(
     # This is a bit hacky, ideally we'd use a proper serializer or hybrid property
     # For now, let's assume the service/model handles it or we query it explicitly
     # Re-querying for simplicity in this context
-    from sqlalchemy import func
 
     lat = await db.scalar(select(func.ST_Y(truck.base_location)))
     lng = await db.scalar(select(func.ST_X(truck.base_location)))
@@ -188,8 +191,6 @@ async def update_truck(
         )
 
     truck = await MoverService.update_truck(db, truck, update_data)
-
-    from sqlalchemy import func
 
     lat = await db.scalar(select(func.ST_Y(truck.base_location)))
     lng = await db.scalar(select(func.ST_X(truck.base_location)))

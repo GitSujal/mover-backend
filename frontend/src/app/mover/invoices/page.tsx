@@ -13,7 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   FileText,
   Download,
-  DollarSign,
   CheckCircle2,
   Clock,
   XCircle,
@@ -217,9 +216,8 @@ export default function InvoicesPage() {
                   {invoices?.invoices.map((invoice) => (
                     <Card
                       key={invoice.id}
-                      className={`cursor-pointer hover:border-primary transition-colors ${
-                        selectedInvoice?.id === invoice.id ? 'border-primary' : ''
-                      }`}
+                      className={`cursor-pointer hover:border-primary transition-colors ${selectedInvoice?.id === invoice.id ? 'border-primary' : ''
+                        }`}
                       onClick={() => loadInvoiceDetails(invoice.id)}
                     >
                       <CardContent className="p-4">
@@ -373,7 +371,7 @@ export default function InvoicesPage() {
 
                 {/* Actions */}
                 {selectedInvoice.status === InvoiceStatus.ISSUED ||
-                selectedInvoice.status === InvoiceStatus.OVERDUE ? (
+                  selectedInvoice.status === InvoiceStatus.OVERDUE ? (
                   <div className="pt-4 border-t">
                     <Button
                       onClick={handleMarkAsPaid}

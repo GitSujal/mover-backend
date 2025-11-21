@@ -23,9 +23,6 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
-// Mock org ID - TODO: Replace with actual auth context
-const MOCK_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
-
 export default function VerificationPage() {
   const [verifications, setVerifications] = useState<DocumentVerificationListResponse | null>(null);
   const [selectedDoc, setSelectedDoc] = useState<DocumentVerificationResponse | null>(null);
@@ -200,9 +197,8 @@ export default function VerificationPage() {
                   {verifications?.verifications.map((doc) => (
                     <Card
                       key={doc.id}
-                      className={`cursor-pointer hover:border-primary transition-colors ${
-                        selectedDoc?.id === doc.id ? 'border-primary' : ''
-                      }`}
+                      className={`cursor-pointer hover:border-primary transition-colors ${selectedDoc?.id === doc.id ? 'border-primary' : ''
+                        }`}
                       onClick={() => setSelectedDoc(doc)}
                     >
                       <CardContent className="p-4">
@@ -335,7 +331,7 @@ export default function VerificationPage() {
                 </div>
 
                 {selectedDoc.status === VerificationStatus.PENDING ||
-                selectedDoc.status === VerificationStatus.UNDER_REVIEW ? (
+                  selectedDoc.status === VerificationStatus.UNDER_REVIEW ? (
                   <div className="space-y-2 pt-4 border-t">
                     <p className="font-medium">Review Actions</p>
                     <div className="grid grid-cols-2 gap-2">

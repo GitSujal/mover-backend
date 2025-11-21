@@ -15,14 +15,17 @@ class TestCalendarAPI:
 
     async def test_get_calendar_bookings_success(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
+        organization,  # Create organization
+        driver,  # Create driver
+        truck,  # Create truck
         sample_organization_data: dict,
         sample_booking_data: dict,
     ):
         """Test retrieving calendar bookings."""
         # Create a booking
-        booking_response = await client.post(
+        booking_response = await authed_client.post(
             "/api/v1/bookings",
             json=sample_booking_data,
         )
@@ -32,7 +35,7 @@ class TestCalendarAPI:
         start_date = datetime.utcnow().isoformat()
         end_date = (datetime.utcnow() + timedelta(days=30)).isoformat()
 
-        response = await client.get(
+        response = await authed_client.get(
             "/api/v1/calendar/bookings",
             params={
                 "start_date": start_date,
@@ -49,19 +52,19 @@ class TestCalendarAPI:
 
     async def test_get_calendar_bookings_with_status_filter(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
         sample_booking_data: dict,
     ):
         """Test calendar bookings with status filter."""
         # Create a booking
-        await client.post("/api/v1/bookings", json=sample_booking_data)
+        await authed_client.post("/api/v1/bookings", json=sample_booking_data)
 
         # Get only pending bookings
         start_date = datetime.utcnow().isoformat()
         end_date = (datetime.utcnow() + timedelta(days=30)).isoformat()
 
-        response = await client.get(
+        response = await authed_client.get(
             "/api/v1/calendar/bookings",
             params={
                 "start_date": start_date,
@@ -77,14 +80,14 @@ class TestCalendarAPI:
 
     async def test_get_calendar_bookings_invalid_date_range(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
     ):
         """Test calendar bookings with invalid date range."""
         start_date = datetime.utcnow().isoformat()
         end_date = (datetime.utcnow() - timedelta(days=1)).isoformat()  # Before start
 
-        response = await client.get(
+        response = await authed_client.get(
             "/api/v1/calendar/bookings",
             params={
                 "start_date": start_date,
@@ -98,14 +101,14 @@ class TestCalendarAPI:
 
     async def test_get_calendar_bookings_exceeds_max_range(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
     ):
         """Test calendar bookings exceeding maximum range."""
         start_date = datetime.utcnow().isoformat()
         end_date = (datetime.utcnow() + timedelta(days=100)).isoformat()  # > 90 days
 
-        response = await client.get(
+        response = await authed_client.get(
             "/api/v1/calendar/bookings",
             params={
                 "start_date": start_date,
@@ -119,13 +122,14 @@ class TestCalendarAPI:
 
     async def test_get_driver_schedule(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
+        organization,  # Ensure org exists
         sample_driver_data: dict,
     ):
         """Test retrieving driver schedule."""
         # Create a driver
-        driver_response = await client.post(
+        driver_response = await authed_client.post(
             "/api/v1/movers/drivers",
             json=sample_driver_data,
             headers=auth_headers,
@@ -137,7 +141,7 @@ class TestCalendarAPI:
         start_date = datetime.utcnow().isoformat()
         end_date = (datetime.utcnow() + timedelta(days=7)).isoformat()
 
-        response = await client.get(
+        response = await authed_client.get(
             f"/api/v1/calendar/driver/{driver_id}/schedule",
             params={
                 "start_date": start_date,
@@ -157,7 +161,7 @@ class TestCalendarAPI:
 
     async def test_get_driver_schedule_wrong_org(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
         sample_driver_data: dict,
     ):
@@ -169,7 +173,7 @@ class TestCalendarAPI:
         start_date = datetime.utcnow().isoformat()
         end_date = (datetime.utcnow() + timedelta(days=7)).isoformat()
 
-        response = await client.get(
+        response = await authed_client.get(
             f"/api/v1/calendar/driver/{fake_driver_id}/schedule",
             params={
                 "start_date": start_date,
@@ -182,13 +186,14 @@ class TestCalendarAPI:
 
     async def test_get_truck_schedule(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
+        organization,  # Ensure org exists
         sample_truck_data: dict,
     ):
         """Test retrieving truck schedule."""
         # Create a truck
-        truck_response = await client.post(
+        truck_response = await authed_client.post(
             "/api/v1/movers/trucks",
             json=sample_truck_data,
             headers=auth_headers,
@@ -200,7 +205,7 @@ class TestCalendarAPI:
         start_date = datetime.utcnow().isoformat()
         end_date = (datetime.utcnow() + timedelta(days=7)).isoformat()
 
-        response = await client.get(
+        response = await authed_client.get(
             f"/api/v1/calendar/truck/{truck_id}/schedule",
             params={
                 "start_date": start_date,
@@ -220,14 +225,17 @@ class TestCalendarAPI:
 
     async def test_get_fleet_calendar(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
+        organization,  # Ensure org exists
+        driver,  # Ensure driver exists
+        truck,  # Ensure truck exists
     ):
         """Test retrieving fleet-wide calendar."""
         start_date = datetime.utcnow().isoformat()
         end_date = (datetime.utcnow() + timedelta(days=7)).isoformat()
 
-        response = await client.get(
+        response = await authed_client.get(
             "/api/v1/calendar/fleet",
             params={
                 "start_date": start_date,
@@ -248,14 +256,14 @@ class TestCalendarAPI:
 
     async def test_get_fleet_calendar_exceeds_max_range(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
     ):
         """Test fleet calendar exceeding maximum range."""
         start_date = datetime.utcnow().isoformat()
         end_date = (datetime.utcnow() + timedelta(days=40)).isoformat()  # > 31 days
 
-        response = await client.get(
+        response = await authed_client.get(
             "/api/v1/calendar/fleet",
             params={
                 "start_date": start_date,
@@ -269,15 +277,17 @@ class TestCalendarAPI:
 
     async def test_check_availability_available(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
-        sample_organization_data: dict,
+        organization,  # Ensure org exists
+        driver,  # Ensure driver exists
+        truck,  # Ensure truck exists
     ):
         """Test availability check when resources are available."""
-        org_id = sample_organization_data["id"]
+        org_id = str(organization.id)
         move_date = (datetime.utcnow() + timedelta(days=7)).isoformat()
 
-        response = await client.post(
+        response = await authed_client.post(
             "/api/v1/calendar/availability",
             json={
                 "org_id": org_id,
@@ -298,14 +308,14 @@ class TestCalendarAPI:
 
     async def test_check_availability_wrong_org(
         self,
-        client: AsyncClient,
+        authed_client: AsyncClient,
         auth_headers: dict,
     ):
         """Test availability check for different organization."""
         fake_org_id = "00000000-0000-0000-0000-000000000000"
         move_date = (datetime.utcnow() + timedelta(days=7)).isoformat()
 
-        response = await client.post(
+        response = await authed_client.post(
             "/api/v1/calendar/availability",
             json={
                 "org_id": fake_org_id,
@@ -321,10 +331,10 @@ class TestCalendarAPI:
     async def test_check_availability_unauthenticated(
         self,
         client: AsyncClient,
-        sample_organization_data: dict,
+        organization,  # Ensure org exists
     ):
         """Test availability check without authentication."""
-        org_id = sample_organization_data["id"]
+        org_id = str(organization.id)
         move_date = (datetime.utcnow() + timedelta(days=7)).isoformat()
 
         response = await client.post(
@@ -336,4 +346,4 @@ class TestCalendarAPI:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 403

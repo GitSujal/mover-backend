@@ -107,6 +107,11 @@ class User(BaseModel):
         """Get user's full name."""
         return f"{self.first_name} {self.last_name}"
 
+    @property
+    def name(self) -> str:
+        """Alias for full_name."""
+        return self.full_name
+
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"
 
@@ -131,6 +136,12 @@ class CustomerSession(BaseModel):
 
     # Customer Identifier (email or phone)
     identifier: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+
+    @property
+    def email(self) -> str:
+        """Alias for identifier (assuming email context)."""
+        return self.identifier
+
     identifier_type: Mapped[str] = mapped_column(String(10), nullable=False)  # 'email' or 'phone'
 
     # OTP for verification

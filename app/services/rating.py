@@ -79,9 +79,9 @@ class RatingService:
                 raise BookingNotEligibleError("Customer email does not match booking")
 
             # Check if rating already exists
-            stmt = select(Rating).where(Rating.booking_id == rating_data.booking_id)
-            result = await db.execute(stmt)
-            existing = result.scalar_one_or_none()
+            rating_stmt = select(Rating).where(Rating.booking_id == rating_data.booking_id)
+            rating_result = await db.execute(rating_stmt)
+            existing = rating_result.scalar_one_or_none()
 
             if existing:
                 raise RatingAlreadyExistsError("Rating already exists for this booking")
@@ -215,13 +215,13 @@ class RatingService:
 
             # Get total count
             count_stmt = select(func.count()).select_from(stmt.subquery())
-            result = await db.execute(count_stmt)
-            total = result.scalar() or 0
+            count_result = await db.execute(count_stmt)
+            total = count_result.scalar() or 0
 
             # Get paginated results
             stmt = stmt.order_by(Rating.created_at.desc()).limit(limit).offset(offset)
-            result = await db.execute(stmt)
-            ratings = list(result.scalars().all())
+            ratings_result = await db.execute(stmt)
+            ratings = list(ratings_result.scalars().all())
 
             span.set_attribute("total_ratings", total)
             span.set_attribute("returned_count", len(ratings))
@@ -247,7 +247,8 @@ class RatingService:
 
             # Get all published ratings
             stmt = select(Rating).where(
-                Rating.org_id == org_id, Rating.is_published == True  # noqa: E712
+                Rating.org_id == org_id,
+                Rating.is_published == True,  # noqa: E712
             )
             result = await db.execute(stmt)
             ratings = list(result.scalars().all())
@@ -278,9 +279,9 @@ class RatingService:
                 star_counts[rating.overall_rating] += 1
 
             # Get or create summary
-            stmt = select(RatingSummary).where(RatingSummary.org_id == org_id)
-            result = await db.execute(stmt)
-            summary = result.scalar_one_or_none()
+            summary_stmt = select(RatingSummary).where(RatingSummary.org_id == org_id)
+            summary_result = await db.execute(summary_stmt)
+            summary: RatingSummary | None = summary_result.scalar_one_or_none()
 
             if summary:
                 # Update existing

@@ -39,6 +39,12 @@ class Organization(BaseModel):
     # Basic Information
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+
+    @property
+    def contact_email(self) -> str:
+        """Alias for email."""
+        return self.email
+
     phone: Mapped[str] = mapped_column(String(20), nullable=False)
 
     # Business Information
@@ -89,3 +95,8 @@ class Organization(BaseModel):
 
     def __repr__(self) -> str:
         return f"<Organization(id={self.id}, name={self.name}, status={self.status})>"
+
+    @property
+    def business_name(self) -> str:
+        """Alias for name."""
+        return self.name

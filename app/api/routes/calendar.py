@@ -274,14 +274,14 @@ async def get_fleet_calendar(
     # Get schedules for all drivers
     driver_schedules = []
     for driver in drivers:
-        schedule = await CalendarService.get_driver_schedule(
+        driver_schedule = await CalendarService.get_driver_schedule(
             db=db,
             driver_id=driver.id,
             start_date=start_date,
             end_date=end_date,
         )
         total_hours = sum(
-            (item.end_time - item.start_time).total_seconds() / 3600 for item in schedule
+            (item.end_time - item.start_time).total_seconds() / 3600 for item in driver_schedule
         )
         driver_schedules.append(
             DriverScheduleResponse(
@@ -289,23 +289,23 @@ async def get_fleet_calendar(
                 driver_name=driver.name,
                 start_date=start_date,
                 end_date=end_date,
-                schedule=schedule,
+                schedule=driver_schedule,
                 total_hours_booked=total_hours,
-                total_bookings=len(schedule),
+                total_bookings=len(driver_schedule),
             )
         )
 
     # Get schedules for all trucks
     truck_schedules = []
     for truck in trucks:
-        schedule = await CalendarService.get_truck_schedule(
+        truck_schedule = await CalendarService.get_truck_schedule(
             db=db,
             truck_id=truck.id,
             start_date=start_date,
             end_date=end_date,
         )
         total_hours = sum(
-            (item.end_time - item.start_time).total_seconds() / 3600 for item in schedule
+            (item.end_time - item.start_time).total_seconds() / 3600 for item in truck_schedule
         )
         truck_schedules.append(
             TruckScheduleResponse(
@@ -313,9 +313,9 @@ async def get_fleet_calendar(
                 truck_identifier=truck.license_plate,
                 start_date=start_date,
                 end_date=end_date,
-                schedule=schedule,
+                schedule=truck_schedule,
                 total_hours_booked=total_hours,
-                total_bookings=len(schedule),
+                total_bookings=len(truck_schedule),
             )
         )
 
