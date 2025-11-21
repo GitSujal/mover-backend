@@ -27,6 +27,7 @@ from app.api.routes import (
     auth,
     booking_status,
     bookings,
+    calendar,
     cancellation,
     documents,
     driver_assignment,
@@ -379,6 +380,7 @@ app.mount("/metrics", metrics_app)
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(bookings.router, prefix="/api/v1")
 app.include_router(booking_status.router, prefix="/api/v1")
+app.include_router(calendar.router, prefix="/api/v1")
 app.include_router(cancellation.router, prefix="/api/v1")
 app.include_router(documents.router, prefix="/api/v1")
 app.include_router(invoices.router, prefix="/api/v1")
