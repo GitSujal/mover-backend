@@ -16,11 +16,9 @@ export function CustomerInfoStep({ form }: CustomerInfoStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Let's Get Started
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Let&apos;s Get Started</h2>
         <p className="text-gray-600">
-          We'll need your contact information to confirm your booking and send updates.
+          We&apos;ll need your contact information to confirm your booking and send updates.
         </p>
       </div>
 
@@ -49,7 +47,7 @@ export function CustomerInfoStep({ form }: CustomerInfoStepProps) {
             error={errors.customer_email?.message}
           />
           <p className="mt-1 text-xs text-gray-500">
-            We'll send your booking confirmation here
+            We&apos;ll send your booking confirmation here
           </p>
         </div>
 

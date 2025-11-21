@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
   size?: 'default' | 'sm' | 'lg';
   isLoading?: boolean;
@@ -27,8 +26,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const variants = {
       default: 'bg-primary-600 text-white hover:bg-primary-700',
       secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300',
-      outline:
-        'border-2 border-primary-600 text-primary-600 hover:bg-primary-50',
+      outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50',
       ghost: 'hover:bg-gray-100 text-gray-700',
       destructive: 'bg-red-600 text-white hover:bg-red-700',
     };
@@ -42,12 +40,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        className={cn(
-          baseStyles,
-          variants[variant],
-          sizes[size],
-          className
-        )}
+        className={cn(baseStyles, variants[variant], sizes[size], className)}
         disabled={disabled || isLoading}
         {...props}
       >

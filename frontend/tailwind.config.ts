@@ -22,9 +22,12 @@ const config: Config = {
           900: '#0c4a6e',
           950: '#082f49',
         },
-borderColor: {
+      },
+      borderColor: {
         DEFAULT: 'hsl(var(--border))',
       },
+    },
+  },
   plugins: [],
 };
 

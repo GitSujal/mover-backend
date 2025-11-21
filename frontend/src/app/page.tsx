@@ -38,8 +38,8 @@ export default function HomePage() {
             <span className="block text-primary-600 mt-2">Made Simple</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Book verified moving companies with transparent pricing, real-time tracking,
-            and hassle-free service. No account needed—get started in minutes.
+            Book verified moving companies with transparent pricing, real-time tracking, and
+            hassle-free service. No account needed—get started in minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/book">
@@ -153,9 +153,7 @@ export default function HomePage() {
               <Package className="h-6 w-6" />
               <span className="text-xl font-bold">MoveHub</span>
             </div>
-            <p className="text-gray-400 text-sm">
-              © 2025 MoveHub. All rights reserved.
-            </p>
+            <p className="text-gray-400 text-sm">© 2025 MoveHub. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -3,7 +3,6 @@
  * These tests verify that frontend can communicate with backend
  */
 
-import { bookingAPI } from '@/lib/api/bookings';
 import { BookingFormData } from '@/lib/validations/booking';
 import axios from 'axios';
 
@@ -55,15 +54,16 @@ describe('API Client', () => {
         },
       };
 
-      mockedAxios.create = jest.fn().returnValue({
-        post: jest.fn().resolves(mockResponse),
+      mockedAxios.create = jest.fn(() => ({
+        post: jest.fn().mockResolvedValue(mockResponse),
         get: jest.fn(),
         patch: jest.fn(),
         interceptors: {
           request: { use: jest.fn(), eject: jest.fn() },
           response: { use: jest.fn(), eject: jest.fn() },
         },
-      } as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      })) as any;
 
       // Note: This is a unit test with mocked axios
       // For real integration testing, you'd need the backend running
@@ -81,7 +81,7 @@ describe('API Client', () => {
 
       // TypeScript should catch this at compile time
       // @ts-expect-error - Testing type safety
-      const test: BookingFormData = invalidData;
+      const _test: BookingFormData = invalidData;
 
       expect(invalidData.customer_name).toBeDefined();
     });
