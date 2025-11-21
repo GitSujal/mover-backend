@@ -223,18 +223,14 @@ async def update_booking(
             detail="Access denied",
         )
 
-    # Update fields
-    if update_data.status is not None:
-        booking.status = update_data.status
-
-    if update_data.final_amount is not None:
-        booking.final_amount = update_data.final_amount
-
-    if update_data.internal_notes is not None:
-        booking.internal_notes = update_data.internal_notes
-
-    await db.commit()
-    await db.refresh(booking)
+    # Update booking via service
+    try:
+        booking = await BookingService.update_booking(db, booking, update_data)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
 
     logger.info(
         f"Booking updated: {booking_id}",

@@ -24,7 +24,9 @@ class DriverBase(BaseSchema):
 class DriverCreate(DriverBase):
     """Schema for creating a driver."""
 
-    pass
+    photo_url: str | None = Field(None, max_length=512)
+    license_front_url: str | None = Field(None, max_length=512)
+    license_back_url: str | None = Field(None, max_length=512)
 
 
 class DriverUpdate(BaseSchema):

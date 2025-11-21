@@ -23,7 +23,7 @@ from prometheus_client import make_asgi_app
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.routes import auth, bookings
+from app.api.routes import auth, bookings, movers
 from app.core.config import settings
 from app.core.database import close_db, get_engine
 from app.core.observability import initialize_observability, start_prometheus_server
@@ -366,6 +366,7 @@ app.mount("/metrics", metrics_app)
 # Include API routers
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(bookings.router, prefix="/api/v1")
+app.include_router(movers.router, prefix="/api/v1")
 
 
 # Root endpoint

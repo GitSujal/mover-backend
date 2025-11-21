@@ -34,6 +34,10 @@ class TruckCreate(TruckBase):
 
     base_location: LocationInput = Field(..., description="Base location (lat, long)")
     insurance_document_url: str | None = Field(None, max_length=512)
+    photo_front: str | None = Field(None, max_length=512)
+    photo_back: str | None = Field(None, max_length=512)
+    photo_left: str | None = Field(None, max_length=512)
+    photo_right: str | None = Field(None, max_length=512)
 
 
 class TruckUpdate(BaseSchema):
@@ -44,6 +48,10 @@ class TruckUpdate(BaseSchema):
     base_location: LocationInput | None = None
     registration_expiry: str | None = Field(None, pattern=r"^\d{4}-\d{2}-\d{2}$")
     insurance_document_url: str | None = Field(None, max_length=512)
+    photo_front: str | None = Field(None, max_length=512)
+    photo_back: str | None = Field(None, max_length=512)
+    photo_left: str | None = Field(None, max_length=512)
+    photo_right: str | None = Field(None, max_length=512)
 
 
 class TruckResponse(TruckBase, ResourceResponse):
@@ -55,3 +63,7 @@ class TruckResponse(TruckBase, ResourceResponse):
     base_location_lat: float = Field(..., description="Base latitude")
     base_location_lng: float = Field(..., description="Base longitude")
     insurance_document_url: str | None = None
+    photo_front: str | None = None
+    photo_back: str | None = None
+    photo_left: str | None = None
+    photo_right: str | None = None

@@ -279,6 +279,79 @@ class TestBookingAPI:
         # Should return 403 Forbidden because no authentication provided
         assert update_response.status_code == 403
 
+    async def test_invalid_status_transition(
+        self, client: AsyncClient, sample_org_with_truck, db_session
+    ):
+        """Test that invalid status transitions are rejected."""
+        # Create booking (default status is CONFIRMED in create_booking service, but let's check)
+        # Actually create_booking sets it to CONFIRMED.
+        # Let's try to move from CONFIRMED to PENDING (invalid)
+
+        move_date = datetime.now(UTC) + timedelta(days=1)
+        booking_data = self._create_booking_data(
+            sample_org_with_truck,
+            customer_name="Status Test",
+            customer_email="status@example.com",
+            customer_phone="+14155556666",
+            move_date=move_date.isoformat(),
+            pickup_address="123 St",
+            pickup_city="SF",
+            pickup_state="CA",
+            pickup_zip="94105",
+            dropoff_address="456 Ave",
+            dropoff_city="Oakland",
+            dropoff_state="CA",
+            dropoff_zip="94607",
+            estimated_distance_miles=5.0,
+            estimated_duration_hours=2.0,
+        )
+
+        create_response = await client.post("/api/v1/bookings", json=booking_data)
+        assert create_response.status_code == 201
+        booking_id = create_response.json()["id"]
+
+        # We need to authenticate as the org owner to update
+        # This requires a bit more setup with auth headers which is tricky in this existing test structure
+        # relying on client fixture.
+        # However, the previous test `test_update_booking_status` showed 403, meaning it reached the endpoint.
+        # To test 400 Bad Request from service, we need to bypass auth or mock it.
+        # Since I can't easily mock auth here without changing fixtures, I will skip this specific test
+        # if I can't easily authenticate.
+        # BUT, I can use `app.api.dependencies.get_current_active_user` override.
+
+        from app.api.dependencies import get_current_active_user
+        from app.main import app
+
+        # Mock user
+        org = sample_org_with_truck["org"]
+
+        class MockUser:
+            id = "00000000-0000-0000-0000-000000000000"
+            org_id = org.id
+            email = "owner@test.com"
+            role = "org_owner"
+            is_active = True
+
+        app.dependency_overrides[get_current_active_user] = lambda: MockUser()
+
+        try:
+            # Try invalid transition: CONFIRMED -> PENDING
+            response = await client.patch(
+                f"/api/v1/bookings/{booking_id}", json={"status": "pending"}
+            )
+            assert response.status_code == 400
+            assert "Invalid status transition" in response.json()["detail"]
+
+            # Try valid transition: CONFIRMED -> IN_PROGRESS
+            response = await client.patch(
+                f"/api/v1/bookings/{booking_id}", json={"status": "in_progress"}
+            )
+            assert response.status_code == 200
+            assert response.json()["status"] == "in_progress"
+
+        finally:
+            app.dependency_overrides = {}
+
     async def test_stairs_surcharge_calculation(self, client: AsyncClient, sample_org_with_truck):
         """Test that stairs surcharge is calculated correctly."""
         move_date = datetime.now(UTC) + timedelta(days=1)

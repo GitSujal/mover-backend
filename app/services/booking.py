@@ -298,6 +298,67 @@ class BookingService:
         return result.scalar_one_or_none()
 
     @staticmethod
+    async def update_booking(
+        db: AsyncSession,
+        booking: Booking,
+        update_data: BookingCreate,  # Using BookingCreate as a proxy for update data, but ideally should be BookingUpdate
+    ) -> Booking:
+        """
+        Update booking with state transition validation.
+
+        Args:
+            db: Database session
+            booking: Existing booking
+            update_data: Update data (BookingUpdate schema)
+
+        Returns:
+            Updated booking
+
+        Raises:
+            ValueError: If state transition is invalid
+        """
+        # Validate status transition
+        if update_data.status and update_data.status != booking.status:
+            BookingService._validate_status_transition(booking.status, update_data.status)
+            booking.status = update_data.status
+
+        # Update other fields
+        if update_data.final_amount is not None:
+            booking.final_amount = update_data.final_amount
+
+        if update_data.internal_notes is not None:
+            booking.internal_notes = update_data.internal_notes
+
+        await db.commit()
+        await db.refresh(booking)
+        return booking
+
+    @staticmethod
+    def _validate_status_transition(
+        current_status: BookingStatus, new_status: BookingStatus
+    ) -> None:
+        """
+        Validate booking status transition.
+
+        Args:
+            current_status: Current status
+            new_status: New status
+
+        Raises:
+            ValueError: If transition is invalid
+        """
+        valid_transitions = {
+            BookingStatus.PENDING: {BookingStatus.CONFIRMED, BookingStatus.CANCELLED},
+            BookingStatus.CONFIRMED: {BookingStatus.IN_PROGRESS, BookingStatus.CANCELLED},
+            BookingStatus.IN_PROGRESS: {BookingStatus.COMPLETED},
+            BookingStatus.COMPLETED: set(),
+            BookingStatus.CANCELLED: set(),
+        }
+
+        if new_status not in valid_transitions.get(current_status, set()):
+            raise ValueError(f"Invalid status transition from {current_status} to {new_status}")
+
+    @staticmethod
     async def list_bookings(
         db: AsyncSession,
         org_id: UUID | None = None,

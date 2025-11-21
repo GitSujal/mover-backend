@@ -84,6 +84,12 @@ class Truck(BaseModel):
     registration_expiry: Mapped[str] = mapped_column(String(10), nullable=False)  # YYYY-MM-DD
     insurance_document_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
+    # Photos (4 sides)
+    photo_front: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    photo_back: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    photo_left: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    photo_right: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
     # Relationships
     organization: Mapped["Organization"] = relationship("Organization", back_populates="trucks")
     bookings: Mapped[list["Booking"]] = relationship("Booking", back_populates="truck")
