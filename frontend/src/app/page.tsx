@@ -38,6 +38,11 @@ export default function HomePage() {
             >
               For Movers
             </Link>
+            <Link href="/signin">
+              <Button variant="outline" size="sm">
+                Sign In
+              </Button>
+            </Link>
           </nav>
         </div>
       </header>
