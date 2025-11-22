@@ -146,7 +146,7 @@ services:
 
   # Jaeger (OpenTelemetry tracing)
   jaeger:
-    image: jaegertracing/all-in-one:latest
+    image: jaegertracing/jaeger:2.12.0
     container_name: movehub-jaeger
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
