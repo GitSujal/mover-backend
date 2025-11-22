@@ -24,8 +24,13 @@ export const apiClient = axios.create({
  */
 apiClient.interceptors.request.use(
   (config) => {
-    // JWT token is automatically sent via HTTP-only cookie
-    // Add any additional headers here if needed
+    // Add Authorization header with JWT token from localStorage
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
     return config;
   },
   (error) => {
@@ -43,10 +48,12 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     // Handle common error scenarios
     if (error.response?.status === 401) {
-      // Unauthorized - redirect to login or refresh token
+      // Unauthorized - clear tokens and redirect to signin
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         // Client-side redirect
-        window.location.href = '/login';
+        window.location.href = '/signin';
       }
     }
 

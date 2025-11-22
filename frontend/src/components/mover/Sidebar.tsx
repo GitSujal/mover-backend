@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Truck,
@@ -14,6 +14,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { authAPI } from '@/lib/api/auth-api';
 
 const navigation = [
   { name: 'Dashboard', href: '/mover', icon: LayoutDashboard },
@@ -28,6 +29,12 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    authAPI.logout();
+    router.push('/signin');
+  };
 
   return (
     <div className="flex h-full w-64 flex-col bg-slate-900 text-white">
@@ -60,7 +67,7 @@ export function Sidebar() {
         <div className="mt-auto border-t border-slate-800 pt-4">
           <button
             className="group flex w-full items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
-            onClick={() => {}}
+            onClick={handleSignOut}
           >
             <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
             Sign out
