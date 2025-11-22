@@ -10,11 +10,14 @@ export const metadata: Metadata = {
   description: 'Book verified moving companies with transparent pricing and real-time tracking',
 };
 
+import { Toaster } from "@/components/ui/toaster";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${inter.className} bg-background text-foreground`}>
         <Providers>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   );

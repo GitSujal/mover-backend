@@ -322,12 +322,12 @@ export default function VerificationPage() {
                 </div>
 
                 <div>
-                  <Button variant="outline" className="w-full" asChild>
-                    <a href={selectedDoc.document_url} target="_blank" rel="noopener noreferrer">
+                  <a href={selectedDoc.document_url} target="_blank" rel="noopener noreferrer" className="w-full">
+                    <Button variant="outline" className="w-full">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View Document
-                    </a>
-                  </Button>
+                    </Button>
+                  </a>
                 </div>
 
                 {selectedDoc.status === VerificationStatus.PENDING ||

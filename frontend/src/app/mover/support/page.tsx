@@ -26,9 +26,8 @@ import {
   ChevronRight,
   XCircle,
 } from 'lucide-react';
+import { authAPI } from '@/lib/api/auth-api';
 
-// Get org_id from environment variable or use a default for development
-const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || '550e8400-e29b-41d4-a716-446655440000';
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState<SupportTicketListResponse | null>(null);
@@ -49,8 +48,11 @@ export default function SupportPage() {
     try {
       setLoading(true);
       setError(null);
+      const user = await authAPI.getCurrentUser();
+      if (!user.org_id) throw new Error('No organization found');
+
       const data = await supportAPI.listOrganizationTickets(
-        ORG_ID,
+        user.org_id,
         currentPage,
         20,
         statusFilter

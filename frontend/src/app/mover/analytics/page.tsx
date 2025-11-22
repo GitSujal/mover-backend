@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { analyticsAPI, OrganizationDashboard } from '@/lib/api/analytics-api';
+import { authAPI } from '@/lib/api/auth-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -15,8 +16,6 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
-// Get org_id from environment variable or use a default for development
-const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || '550e8400-e29b-41d4-a716-446655440000';
 
 export default function AnalyticsPage() {
   const [dashboard, setDashboard] = useState<OrganizationDashboard | null>(null);
@@ -31,11 +30,18 @@ export default function AnalyticsPage() {
     try {
       setLoading(true);
       setError(null);
+
+      // Get current user to get org_id
+      const user = await authAPI.getCurrentUser();
+      if (!user.org_id) {
+        throw new Error('User is not associated with an organization');
+      }
+
       // Get last 30 days by default
       const endDate = new Date().toISOString();
       const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-      const data = await analyticsAPI.getDashboard(ORG_ID, startDate, endDate);
+      const data = await analyticsAPI.getDashboard(user.org_id, startDate, endDate);
       setDashboard(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');
@@ -290,9 +296,9 @@ export default function AnalyticsPage() {
                   </div>
                   <span className="text-xs text-muted-foreground w-8">
                     {
-                      rating_metrics[
+                      Number(rating_metrics[
                         `${['one', 'two', 'three', 'four', 'five'][stars - 1]}_star_count` as keyof typeof rating_metrics
-                      ]
+                      ])
                     }
                   </span>
                 </div>

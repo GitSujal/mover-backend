@@ -22,6 +22,14 @@ export default function BookPage() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const handleComplete = () => {
+    // Save booking state to localStorage to simulate a logged-in/active booking state
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hasActiveBooking', 'true');
+      window.location.href = '/';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -39,7 +47,13 @@ export default function BookPage() {
           {currentStep === 3 && (
             <Step3Quote onNext={handleNext} onBack={handleBack} bookingData={bookingData} />
           )}
-          {currentStep === 4 && <Step4Review onBack={handleBack} bookingData={bookingData} />}
+          {currentStep === 4 && (
+            <Step4Review
+              onBack={handleBack}
+              onComplete={handleComplete}
+              bookingData={bookingData}
+            />
+          )}
         </div>
       </div>
     </div>

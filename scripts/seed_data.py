@@ -14,12 +14,11 @@ Usage:
 
 import asyncio
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from datetime import datetime, timedelta
 
 from app.core.database import get_db_context
 from app.models.driver import Driver
@@ -27,66 +26,6 @@ from app.models.insurance import InsurancePolicy, InsuranceType
 from app.models.organization import Organization, OrganizationStatus
 from app.models.pricing import PricingConfig
 from app.models.truck import Truck
-
-
-async def seed_organizations():
-    """Create sample moving companies."""
-    print("Creating organizations...")
-
-    orgs_data = [
-        {
-            "name": "Bay Area Movers",
-            "email": "contact@bayareamovers.com",
-            "phone": "+14155551234",
-            "business_license_number": "BL-2024-001",
-            "tax_id": "12-3456789",
-            "address_line1": "123 Mission St",
-            "city": "San Francisco",
-            "state": "CA",
-            "zip_code": "94105",
-            "status": OrganizationStatus.APPROVED,
-        },
-        {
-            "name": "Golden Gate Moving Co",
-            "email": "info@goldengatemove.com",
-            "phone": "+14155552345",
-            "business_license_number": "BL-2024-002",
-            "tax_id": "98-7654321",
-            "address_line1": "456 Market St",
-            "city": "San Francisco",
-            "state": "CA",
-            "zip_code": "94103",
-            "status": OrganizationStatus.APPROVED,
-        },
-        {
-            "name": "Oakland Express Movers",
-            "email": "hello@oaklandmovers.com",
-            "phone": "+15105553456",
-            "business_license_number": "BL-2024-003",
-            "tax_id": "45-6789012",
-            "address_line1": "789 Broadway",
-            "city": "Oakland",
-            "state": "CA",
-            "zip_code": "94607",
-            "status": OrganizationStatus.APPROVED,
-        },
-    ]
-
-    async with get_db_context() as db:
-        orgs = []
-        for org_data in orgs_data:
-            org = Organization(**org_data)
-            db.add(org)
-            orgs.append(org)
-
-        await db.commit()
-
-        # Refresh to get IDs
-        for org in orgs:
-            await db.refresh(org)
-
-        print(f"✓ Created {len(orgs)} organizations")
-        return orgs
 
 
 async def seed_insurance_policies(orgs: list[Organization]):
@@ -99,24 +38,26 @@ async def seed_insurance_policies(orgs: list[Organization]):
             # General liability
             liability = InsurancePolicy(
                 org_id=org.id,
-                insurance_type=InsuranceType.GENERAL_LIABILITY,
+                policy_type=InsuranceType.LIABILITY,
                 provider="State Farm",
                 policy_number=f"GL-{org.business_license_number}-001",
                 coverage_amount=1000000,
                 effective_date=datetime.utcnow() - timedelta(days=30),
                 expiry_date=datetime.utcnow() + timedelta(days=335),
+                document_url="https://example.com/insurance/liability.pdf",
             )
             db.add(liability)
 
             # Cargo insurance
             cargo = InsurancePolicy(
                 org_id=org.id,
-                insurance_type=InsuranceType.CARGO,
+                policy_type=InsuranceType.CARGO,
                 provider="Allstate",
                 policy_number=f"CG-{org.business_license_number}-001",
                 coverage_amount=500000,
                 effective_date=datetime.utcnow() - timedelta(days=30),
                 expiry_date=datetime.utcnow() + timedelta(days=335),
+                document_url="https://example.com/insurance/cargo.pdf",
             )
             db.add(cargo)
             count += 2
@@ -354,6 +295,219 @@ async def seed_pricing_configs(orgs: list[Organization]):
         print(f"✓ Created {count} pricing configurations")
 
 
+async def seed_bookings(orgs: list[Organization]):
+    """Create sample bookings."""
+    print("Creating bookings...")
+    from app.models.booking import Booking, BookingStatus
+    from app.models.truck import Truck
+    from sqlalchemy import select
+
+    async with get_db_context() as db:
+        count = 0
+        for org in orgs:
+            # Get a truck for this org
+            result = await db.execute(select(Truck).where(Truck.org_id == org.id).limit(1))
+            truck = result.scalar_one_or_none()
+
+            if not truck:
+                continue
+
+            # Past booking (Completed)
+            booking1 = Booking(
+                org_id=org.id,
+                truck_id=truck.id,
+                customer_name="Olivia Martin",
+                customer_email="olivia.martin@email.com",
+                customer_phone="+15551234567",
+                pickup_address="123 Start St, San Francisco, CA 94102",
+                dropoff_address="456 End Ave, Oakland, CA 94601",
+                pickup_date=datetime.utcnow() - timedelta(days=2),
+                move_date=datetime.utcnow() - timedelta(days=2),
+                status=BookingStatus.COMPLETED,
+                estimated_amount=1999.00,
+                actual_amount=1999.00,
+                distance_miles=15.5,
+                estimated_duration_hours=4,
+            )
+            db.add(booking1)
+
+            # Upcoming booking (Confirmed)
+            booking2 = Booking(
+                org_id=org.id,
+                truck_id=truck.id,
+                customer_name="Jackson Lee",
+                customer_email="jackson.lee@email.com",
+                customer_phone="+15559876543",
+                pickup_address="789 Main St, San Francisco, CA 94103",
+                dropoff_address="321 Oak Ave, Berkeley, CA 94704",
+                pickup_date=datetime.utcnow() + timedelta(days=1),
+                move_date=datetime.utcnow() + timedelta(days=1),
+                status=BookingStatus.CONFIRMED,
+                estimated_amount=1250.00,
+                distance_miles=12.0,
+                estimated_duration_hours=3,
+            )
+            db.add(booking2)
+
+            count += 2
+
+        await db.commit()
+        print(f"✓ Created {count} bookings")
+
+
+async def seed_invoices(orgs: list[Organization]):
+    """Create sample invoices."""
+    print("Creating invoices...")
+    from app.models.invoice import Invoice, InvoiceStatus
+    from app.models.booking import Booking
+    from sqlalchemy import select
+
+    async with get_db_context() as db:
+        count = 0
+        for org in orgs:
+            # Get bookings for this org
+            result = await db.execute(select(Booking).where(Booking.org_id == org.id))
+            bookings = result.scalars().all()
+
+            for booking in bookings:
+                status = (
+                    InvoiceStatus.PAID if booking.status == "COMPLETED" else InvoiceStatus.ISSUED
+                )
+                amount = (
+                    booking.actual_amount if booking.actual_amount else booking.estimated_amount
+                )
+
+                invoice = Invoice(
+                    org_id=org.id,
+                    booking_id=booking.id,
+                    invoice_number=f"INV-{booking.id.hex[:8].upper()}",
+                    status=status,
+                    subtotal=amount * 0.9,
+                    tax_amount=amount * 0.1,
+                    total_amount=amount,
+                    issued_at=datetime.utcnow(),
+                    due_date=datetime.utcnow() + timedelta(days=30),
+                    paid_at=datetime.utcnow() if status == InvoiceStatus.PAID else None,
+                    payment_method="credit_card" if status == InvoiceStatus.PAID else None,
+                )
+                db.add(invoice)
+                count += 1
+
+        await db.commit()
+        print(f"✓ Created {count} invoices")
+
+
+async def seed_support_tickets(orgs: list[Organization]):
+    """Create sample support tickets."""
+    print("Creating support tickets...")
+    from app.models.support import SupportTicket, IssueStatus, IssueType, IssuePriority
+
+    async with get_db_context() as db:
+        count = 0
+        for org in orgs:
+            ticket1 = SupportTicket(
+                org_id=org.id,
+                customer_name="Alice Johnson",
+                customer_email="alice@example.com",
+                subject="Late Arrival",
+                description="The movers arrived 2 hours late.",
+                issue_type=IssueType.LATE_ARRIVAL,
+                priority=IssuePriority.MEDIUM,
+                status=IssueStatus.OPEN,
+            )
+            db.add(ticket1)
+
+            ticket2 = SupportTicket(
+                org_id=org.id,
+                customer_name="Bob Smith",
+                customer_email="bob@example.com",
+                subject="Damaged Item",
+                description="My lamp was broken during the move.",
+                issue_type=IssueType.DAMAGE,
+                priority=IssuePriority.HIGH,
+                status=IssueStatus.IN_PROGRESS,
+            )
+            db.add(ticket2)
+            count += 2
+
+        await db.commit()
+        print(f"✓ Created {count} support tickets")
+
+
+async def seed_organizations():
+    """Create sample organizations."""
+    print("Creating organizations...")
+    from app.models.organization import Organization, OrganizationStatus
+    from sqlalchemy import select
+
+    organizations_data = [
+        {
+            "name": "Oakland Movers",
+            "email": "info@oaklandmovers.com",
+            "phone": "+15101234567",
+            "business_license_number": "BLN-OAK-001",
+            "tax_id": "TID-OAK-001",
+            "address_line1": "123 Main St",
+            "city": "Oakland",
+            "state": "CA",
+            "zip_code": "94607",
+        },
+        {
+            "name": "San Francisco Haulers",
+            "email": "contact@sfhaulers.com",
+            "phone": "+14159876543",
+            "business_license_number": "BLN-SFH-002",
+            "tax_id": "TID-SFH-002",
+            "address_line1": "456 Market St",
+            "city": "San Francisco",
+            "state": "CA",
+            "zip_code": "94105",
+        },
+    ]
+
+    created_orgs = []
+    count = 0
+    async with get_db_context() as db:
+        for org_data in organizations_data:
+            # Check if org exists
+            result = await db.execute(
+                select(Organization).where(Organization.email == org_data["email"])
+            )
+            existing_org = result.scalar_one_or_none()
+
+            if existing_org:
+                print(f"  - Organization {org_data['name']} already exists")
+                created_orgs.append(existing_org)
+                continue
+
+            org = Organization(
+                name=org_data["name"],
+                email=org_data["email"],
+                phone=org_data["phone"],
+                business_license_number=org_data["business_license_number"],
+                tax_id=org_data["tax_id"],
+                address_line1=org_data["address_line1"],
+                city=org_data["city"],
+                state=org_data["state"],
+                zip_code=org_data["zip_code"],
+                status=OrganizationStatus.APPROVED,
+            )
+            db.add(org)
+            created_orgs.append(org)
+            count += 1
+
+        await db.commit()
+
+        # Refresh all orgs to ensure they are bound to the session
+        for i, org in enumerate(created_orgs):
+            if org not in db:
+                result = await db.execute(select(Organization).where(Organization.id == org.id))
+                created_orgs[i] = result.scalar_one()
+
+        print(f"✓ Created {count} organizations")
+        return created_orgs
+
+
 async def main():
     """Run all seed functions."""
     print("\n=== Seeding Database ===\n")
@@ -367,6 +521,9 @@ async def main():
         await seed_trucks(orgs)
         await seed_drivers(orgs)
         await seed_pricing_configs(orgs)
+        await seed_bookings(orgs)
+        await seed_invoices(orgs)
+        await seed_support_tickets(orgs)
 
         print("\n=== ✓ Database seeded successfully! ===\n")
         print("Sample Organizations:")

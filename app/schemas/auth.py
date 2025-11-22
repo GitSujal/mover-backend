@@ -17,6 +17,19 @@ class UserCreate(BaseSchema):
     role: UserRole = UserRole.ORG_STAFF
 
 
+class UserResponse(BaseSchema):
+    """Schema for user response."""
+
+    id: str
+    first_name: str
+    last_name: str
+    email: EmailStr
+    phone: str | None
+    role: UserRole
+    org_id: str | None
+    is_active: bool = True
+
+
 class UserLogin(BaseSchema):
     """Schema for user login."""
 

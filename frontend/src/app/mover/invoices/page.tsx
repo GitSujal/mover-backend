@@ -21,9 +21,8 @@ import {
   ChevronRight,
   ExternalLink,
 } from 'lucide-react';
+import { authAPI } from '@/lib/api/auth-api';
 
-// Get org_id from environment variable or use a default for development
-const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || '550e8400-e29b-41d4-a716-446655440000';
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<InvoiceListResponse | null>(null);
@@ -42,8 +41,11 @@ export default function InvoicesPage() {
     try {
       setLoading(true);
       setError(null);
+      const user = await authAPI.getCurrentUser();
+      if (!user.org_id) throw new Error('No organization found');
+
       const data = await invoiceAPI.listOrganizationInvoices(
-        ORG_ID,
+        user.org_id,
         currentPage,
         20,
         statusFilter
@@ -386,12 +388,12 @@ export default function InvoicesPage() {
 
                 {selectedInvoice.pdf_url && (
                   <div className="pt-4 border-t">
-                    <Button variant="outline" className="w-full" asChild>
-                      <a href={selectedInvoice.pdf_url} target="_blank" rel="noopener noreferrer">
+                    <a href={selectedInvoice.pdf_url} target="_blank" rel="noopener noreferrer" className="w-full">
+                      <Button variant="outline" className="w-full">
                         <ExternalLink className="h-4 w-4 mr-2" />
                         View PDF in New Tab
-                      </a>
-                    </Button>
+                      </Button>
+                    </a>
                   </div>
                 )}
               </CardContent>

@@ -1,41 +1,40 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { analyticsAPI, OrganizationDashboard } from '@/lib/api/analytics-api';
-import { bookingAPI } from '@/lib/api/booking-api';
-import { BookingWithDetails } from '@/types/booking';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, DollarSign, Truck, Users, CalendarDays } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-
-// Get org_id from environment variable or use a default for development
-const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || '550e8400-e29b-41d4-a716-446655440000';
+import { analyticsAPI, OrganizationDashboard } from '@/lib/api/analytics-api';
+import { authAPI } from '@/lib/api/auth-api';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function MoverDashboard() {
   const [dashboard, setDashboard] = useState<OrganizationDashboard | null>(null);
-  const [recentBookings, setRecentBookings] = useState<BookingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadDashboardData();
+    loadDashboard();
   }, []);
 
-  const loadDashboardData = async () => {
+  const loadDashboard = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // Get current user to get org_id
+      const user = await authAPI.getCurrentUser();
+      if (!user.org_id) {
+        throw new Error('User is not associated with an organization');
+      }
+
+      // Get last 30 days by default
       const endDate = new Date().toISOString();
       const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-      const [dashboardData, bookingsData] = await Promise.all([
-        analyticsAPI.getDashboard(ORG_ID, startDate, endDate),
-        bookingAPI.listBookings({ limit: 5 }),
-      ]);
-
-      setDashboard(dashboardData);
-      setRecentBookings(bookingsData);
+      const data = await analyticsAPI.getDashboard(user.org_id, startDate, endDate);
+      setDashboard(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');
       console.error('Dashboard error:', err);
@@ -46,52 +45,24 @@ export default function MoverDashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Loading your business overview...</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="h-16 bg-muted animate-pulse rounded" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
       </div>
     );
   }
 
-  if (error || !dashboard) {
+  if (error) {
     return (
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Overview of your moving business.</p>
-        </div>
-        <Card className="border-destructive">
-          <CardContent className="p-6">
-            <p className="text-destructive mb-4">
-              {error || 'Failed to load dashboard data'}
-            </p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Make sure the database is seeded with data and the backend is running.
-            </p>
-            <button
-              onClick={loadDashboardData}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-            >
-              Try Again
-            </button>
-          </CardContent>
-        </Card>
+      <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
+        <p className="text-red-600">{error}</p>
+        <Button onClick={loadDashboard}>Try Again</Button>
       </div>
     );
   }
 
-  const { booking_metrics, driver_metrics, truck_metrics } = dashboard;
+  if (!dashboard) return null;
+
+  const { booking_metrics, truck_metrics, driver_metrics } = dashboard;
 
   return (
     <div className="space-y-8">
@@ -123,9 +94,7 @@ export default function MoverDashboard() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {booking_metrics.confirmed_bookings + booking_metrics.in_progress_bookings}
-            </div>
+            <div className="text-2xl font-bold">{booking_metrics.in_progress_bookings}</div>
             <p className="text-xs text-muted-foreground">
               {booking_metrics.pending_bookings} pending approval
             </p>
@@ -140,7 +109,7 @@ export default function MoverDashboard() {
             <div className="text-2xl font-bold">
               {truck_metrics.active_trucks}/{truck_metrics.total_trucks}
             </div>
-            <p className="text-xs text-muted-foreground">Trucks available</p>
+            <p className="text-xs text-muted-foreground">Trucks active</p>
           </CardContent>
         </Card>
         <Card>
@@ -150,9 +119,7 @@ export default function MoverDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{driver_metrics.active_drivers}</div>
-            <p className="text-xs text-muted-foreground">
-              {driver_metrics.average_bookings_per_driver.toFixed(1)} avg jobs/driver
-            </p>
+            <p className="text-xs text-muted-foreground">Currently active</p>
           </CardContent>
         </Card>
       </div>
@@ -163,30 +130,15 @@ export default function MoverDashboard() {
             <CardTitle>Recent Bookings</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentBookings.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>No recent bookings</p>
-                <p className="text-sm mt-2">Bookings will appear here once customers book your services</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {recentBookings.map((booking) => (
-                  <div key={booking.id} className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none">{booking.customer_name}</p>
-                      <p className="text-sm text-muted-foreground">{booking.customer_email}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(booking.move_date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium">${booking.total_price.toFixed(2)}</div>
-                      <Badge variant="outline" className="mt-1">
-                        {booking.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+            <div className="space-y-8">
+              {/* We don't have recent bookings in the dashboard summary yet, 
+                  so we'll show a placeholder message or we could fetch them separately.
+                  For now, let's show a message to check the bookings tab. */}
+              <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                <p>View detailed booking history in the Bookings tab.</p>
+                <Link href="/mover/jobs" className="mt-2 text-primary-600 hover:underline">
+                  Go to Bookings
+                </Link>
               </div>
             )}
           </CardContent>
@@ -196,31 +148,12 @@ export default function MoverDashboard() {
             <CardTitle>Booking Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Pending</span>
-                <span className="font-semibold">{booking_metrics.pending_bookings}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Confirmed</span>
-                <span className="font-semibold">{booking_metrics.confirmed_bookings}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">In Progress</span>
-                <span className="font-semibold">{booking_metrics.in_progress_bookings}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-green-600">Completed</span>
-                <span className="font-semibold text-green-600">
-                  {booking_metrics.completed_bookings}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-red-600">Cancelled</span>
-                <span className="font-semibold text-red-600">
-                  {booking_metrics.cancelled_bookings}
-                </span>
-              </div>
+            <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+              <CalendarDays className="h-8 w-8 mb-2 opacity-50" />
+              <p>Check the Jobs tab for your full schedule.</p>
+              <Link href="/mover/jobs" className="mt-2 text-primary-600 hover:underline">
+                View Schedule
+              </Link>
             </div>
           </CardContent>
         </Card>

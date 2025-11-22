@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.dependencies import get_current_user
 from app.core.database import get_db
 from app.core.security import (
     create_access_token,
@@ -23,6 +24,7 @@ from app.schemas.auth import (
     TokenResponse,
     UserCreate,
     UserLogin,
+    UserResponse,
 )
 from app.services.notifications import NotificationService
 from app.services.redis_cache import RedisCache
@@ -265,3 +267,13 @@ async def verify_customer_otp(
         "message": "OTP verified successfully",
         "session_token": session.session_token,
     }
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_info(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """
+    Get current logged-in user information.
+    """
+    return current_user

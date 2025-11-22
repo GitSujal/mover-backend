@@ -1,9 +1,21 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Package, Clock, Shield, DollarSign } from 'lucide-react';
 
+import { useEffect, useState } from 'react';
+
 export default function HomePage() {
+  const [hasActiveBooking, setHasActiveBooking] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setHasActiveBooking(localStorage.getItem('hasActiveBooking') === 'true');
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
       {/* Header */}
@@ -15,13 +27,13 @@ export default function HomePage() {
           </div>
           <nav className="flex items-center space-x-6">
             <Link
-              href="/booking/status"
+              href="/dashboard"
               className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors"
             >
               Track Booking
             </Link>
             <Link
-              href="/movers/signup"
+              href="/mover/onboarding"
               className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors"
             >
               For Movers
@@ -42,16 +54,26 @@ export default function HomePage() {
             hassle-free service. No account needed—get started in minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/book">
-              <Button size="lg" className="w-full sm:w-auto">
-                Book a Move
-              </Button>
-            </Link>
-            <Link href="/booking/status">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                Track My Booking
-              </Button>
-            </Link>
+            {hasActiveBooking ? (
+              <Link href="/dashboard">
+                <Button size="lg" className="w-full sm:w-auto">
+                  Track My Booking
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/book">
+                <Button size="lg" className="w-full sm:w-auto">
+                  Book a Move
+                </Button>
+              </Link>
+            )}
+            {!hasActiveBooking && (
+              <Link href="/dashboard">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                  Track My Booking
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </section>
