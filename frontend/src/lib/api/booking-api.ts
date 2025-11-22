@@ -23,4 +23,15 @@ export const bookingAPI = {
     const response = await apiClient.get<BookingWithDetails>(`/api/v1/bookings/${id}`);
     return response.data;
   },
+
+  listBookings: async (params?: {
+    truck_id?: string;
+    driver_id?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<BookingWithDetails[]> => {
+    const response = await apiClient.get<BookingWithDetails[]>('/api/v1/bookings', { params });
+    return response.data;
+  },
 };

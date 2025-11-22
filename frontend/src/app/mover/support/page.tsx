@@ -27,8 +27,8 @@ import {
   XCircle,
 } from 'lucide-react';
 
-// Mock org ID - TODO: Replace with actual auth context
-const MOCK_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
+// Get org_id from environment variable or use a default for development
+const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || '550e8400-e29b-41d4-a716-446655440000';
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState<SupportTicketListResponse | null>(null);
@@ -50,7 +50,7 @@ export default function SupportPage() {
       setLoading(true);
       setError(null);
       const data = await supportAPI.listOrganizationTickets(
-        MOCK_ORG_ID,
+        ORG_ID,
         currentPage,
         20,
         statusFilter

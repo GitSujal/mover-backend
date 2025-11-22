@@ -15,8 +15,8 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
-// Mock org ID - in production, this would come from auth context
-const MOCK_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
+// Get org_id from environment variable or use a default for development
+const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || '550e8400-e29b-41d4-a716-446655440000';
 
 export default function AnalyticsPage() {
   const [dashboard, setDashboard] = useState<OrganizationDashboard | null>(null);
@@ -35,7 +35,7 @@ export default function AnalyticsPage() {
       const endDate = new Date().toISOString();
       const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-      const data = await analyticsAPI.getDashboard(MOCK_ORG_ID, startDate, endDate);
+      const data = await analyticsAPI.getDashboard(ORG_ID, startDate, endDate);
       setDashboard(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');
