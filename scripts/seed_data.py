@@ -31,36 +31,58 @@ from app.models.truck import Truck
 async def seed_insurance_policies(orgs: list[Organization]):
     """Create insurance policies for organizations."""
     print("Creating insurance policies...")
+    from sqlalchemy import select
 
     async with get_db_context() as db:
         count = 0
         for org in orgs:
-            # General liability
-            liability = InsurancePolicy(
-                org_id=org.id,
-                policy_type=InsuranceType.LIABILITY,
-                provider="State Farm",
-                policy_number=f"GL-{org.business_license_number}-001",
-                coverage_amount=1000000,
-                effective_date=datetime.utcnow() - timedelta(days=30),
-                expiry_date=datetime.utcnow() + timedelta(days=335),
-                document_url="https://example.com/insurance/liability.pdf",
+            # Check if liability insurance exists
+            result = await db.execute(
+                select(InsurancePolicy).where(
+                    InsurancePolicy.org_id == org.id,
+                    InsurancePolicy.policy_type == InsuranceType.LIABILITY
+                )
             )
-            db.add(liability)
+            existing_liability = result.scalar_one_or_none()
 
-            # Cargo insurance
-            cargo = InsurancePolicy(
-                org_id=org.id,
-                policy_type=InsuranceType.CARGO,
-                provider="Allstate",
-                policy_number=f"CG-{org.business_license_number}-001",
-                coverage_amount=500000,
-                effective_date=datetime.utcnow() - timedelta(days=30),
-                expiry_date=datetime.utcnow() + timedelta(days=335),
-                document_url="https://example.com/insurance/cargo.pdf",
+            if not existing_liability:
+                # General liability
+                liability = InsurancePolicy(
+                    org_id=org.id,
+                    policy_type=InsuranceType.LIABILITY,
+                    provider="State Farm",
+                    policy_number=f"GL-{org.business_license_number}-001",
+                    coverage_amount=1000000,
+                    effective_date=datetime.utcnow() - timedelta(days=30),
+                    expiry_date=datetime.utcnow() + timedelta(days=335),
+                    document_url="https://example.com/insurance/liability.pdf",
+                )
+                db.add(liability)
+                count += 1
+
+            # Check if cargo insurance exists
+            result = await db.execute(
+                select(InsurancePolicy).where(
+                    InsurancePolicy.org_id == org.id,
+                    InsurancePolicy.policy_type == InsuranceType.CARGO
+                )
             )
-            db.add(cargo)
-            count += 2
+            existing_cargo = result.scalar_one_or_none()
+
+            if not existing_cargo:
+                # Cargo insurance
+                cargo = InsurancePolicy(
+                    org_id=org.id,
+                    policy_type=InsuranceType.CARGO,
+                    provider="Allstate",
+                    policy_number=f"CG-{org.business_license_number}-001",
+                    coverage_amount=500000,
+                    effective_date=datetime.utcnow() - timedelta(days=30),
+                    expiry_date=datetime.utcnow() + timedelta(days=335),
+                    document_url="https://example.com/insurance/cargo.pdf",
+                )
+                db.add(cargo)
+                count += 1
 
         await db.commit()
         print(f"✓ Created {count} insurance policies")
@@ -130,21 +152,36 @@ async def seed_trucks(orgs: list[Organization]):
         },
     ]
 
+    from sqlalchemy import select
+
     async with get_db_context() as db:
         trucks = []
+        created_count = 0
+
         # Assign trucks to organizations (2 each)
         for i, truck_data in enumerate(trucks_data):
             org_index = i // 2
-            truck = Truck(org_id=orgs[org_index].id, **truck_data)
-            db.add(truck)
-            trucks.append(truck)
+
+            # Check if truck already exists by license plate
+            result = await db.execute(
+                select(Truck).where(Truck.license_plate == truck_data["license_plate"])
+            )
+            existing_truck = result.scalar_one_or_none()
+
+            if existing_truck:
+                trucks.append(existing_truck)
+            else:
+                truck = Truck(org_id=orgs[org_index].id, **truck_data)
+                db.add(truck)
+                trucks.append(truck)
+                created_count += 1
 
         await db.commit()
 
         for truck in trucks:
             await db.refresh(truck)
 
-        print(f"✓ Created {len(trucks)} trucks")
+        print(f"✓ Created {created_count} trucks ({len(trucks)} total)")
         return trucks
 
 
@@ -234,62 +271,90 @@ async def seed_drivers(orgs: list[Organization]):
         },
     ]
 
+    from sqlalchemy import select
+
     async with get_db_context() as db:
         drivers = []
+        created_count = 0
+
         # Assign drivers to organizations (2 each)
         for i, driver_data in enumerate(drivers_data):
             org_index = i // 2
-            driver = Driver(org_id=orgs[org_index].id, **driver_data)
-            db.add(driver)
-            drivers.append(driver)
+
+            # Check if driver already exists by license number
+            result = await db.execute(
+                select(Driver).where(
+                    Driver.drivers_license_number == driver_data["drivers_license_number"]
+                )
+            )
+            existing_driver = result.scalar_one_or_none()
+
+            if existing_driver:
+                drivers.append(existing_driver)
+            else:
+                driver = Driver(org_id=orgs[org_index].id, **driver_data)
+                db.add(driver)
+                drivers.append(driver)
+                created_count += 1
 
         await db.commit()
 
         for driver in drivers:
             await db.refresh(driver)
 
-        print(f"✓ Created {len(drivers)} drivers")
+        print(f"✓ Created {created_count} drivers ({len(drivers)} total)")
         return drivers
 
 
 async def seed_pricing_configs(orgs: list[Organization]):
     """Create pricing configurations."""
     print("Creating pricing configurations...")
+    from sqlalchemy import select
 
     async with get_db_context() as db:
         count = 0
         for org in orgs:
-            pricing = PricingConfig(
-                org_id=org.id,
-                base_hourly_rate=150.0,
-                base_mileage_rate=2.50,
-                minimum_charge=200.0,
-                surcharge_rules=[
-                    {
-                        "type": "stairs",
-                        "amount": 50.0,
-                        "per_flight": True,
-                        "description": "Stairs surcharge (per flight)",
-                    },
-                    {"type": "piano", "amount": 150.0, "description": "Piano moving surcharge"},
-                    {
-                        "type": "weekend",
-                        "multiplier": 1.25,
-                        "days": [0, 6],  # Sunday and Saturday
-                        "description": "Weekend surcharge (25% extra)",
-                    },
-                    {
-                        "type": "after_hours",
-                        "multiplier": 1.20,
-                        "min_time": "18:00",
-                        "max_time": "08:00",
-                        "description": "After hours surcharge (20% extra)",
-                    },
-                ],
-                is_active=True,
+            # Check if pricing config already exists for this org
+            result = await db.execute(
+                select(PricingConfig).where(
+                    PricingConfig.org_id == org.id,
+                    PricingConfig.is_active == True
+                )
             )
-            db.add(pricing)
-            count += 1
+            existing_pricing = result.scalar_one_or_none()
+
+            if not existing_pricing:
+                pricing = PricingConfig(
+                    org_id=org.id,
+                    base_hourly_rate=150.0,
+                    base_mileage_rate=2.50,
+                    minimum_charge=200.0,
+                    surcharge_rules=[
+                        {
+                            "type": "stairs",
+                            "amount": 50.0,
+                            "per_flight": True,
+                            "description": "Stairs surcharge (per flight)",
+                        },
+                        {"type": "piano", "amount": 150.0, "description": "Piano moving surcharge"},
+                        {
+                            "type": "weekend",
+                            "multiplier": 1.25,
+                            "days": [0, 6],  # Sunday and Saturday
+                            "description": "Weekend surcharge (25% extra)",
+                        },
+                        {
+                            "type": "after_hours",
+                            "multiplier": 1.20,
+                            "min_time": "18:00",
+                            "max_time": "08:00",
+                            "description": "After hours surcharge (20% extra)",
+                        },
+                    ],
+                    is_active=True,
+                )
+                db.add(pricing)
+                count += 1
 
         await db.commit()
         print(f"✓ Created {count} pricing configurations")
@@ -312,44 +377,66 @@ async def seed_bookings(orgs: list[Organization]):
             if not truck:
                 continue
 
-            # Past booking (Completed)
-            booking1 = Booking(
-                org_id=org.id,
-                truck_id=truck.id,
-                customer_name="Olivia Martin",
-                customer_email="olivia.martin@email.com",
-                customer_phone="+15551234567",
-                pickup_address="123 Start St, San Francisco, CA 94102",
-                dropoff_address="456 End Ave, Oakland, CA 94601",
-                pickup_date=datetime.utcnow() - timedelta(days=2),
-                move_date=datetime.utcnow() - timedelta(days=2),
-                status=BookingStatus.COMPLETED,
-                estimated_amount=1999.00,
-                actual_amount=1999.00,
-                distance_miles=15.5,
-                estimated_duration_hours=4,
+            # Check if past booking exists
+            past_date = datetime.utcnow() - timedelta(days=2)
+            result = await db.execute(
+                select(Booking).where(
+                    Booking.org_id == org.id,
+                    Booking.customer_email == "olivia.martin@email.com"
+                )
             )
-            db.add(booking1)
+            existing_booking1 = result.scalar_one_or_none()
 
-            # Upcoming booking (Confirmed)
-            booking2 = Booking(
-                org_id=org.id,
-                truck_id=truck.id,
-                customer_name="Jackson Lee",
-                customer_email="jackson.lee@email.com",
-                customer_phone="+15559876543",
-                pickup_address="789 Main St, San Francisco, CA 94103",
-                dropoff_address="321 Oak Ave, Berkeley, CA 94704",
-                pickup_date=datetime.utcnow() + timedelta(days=1),
-                move_date=datetime.utcnow() + timedelta(days=1),
-                status=BookingStatus.CONFIRMED,
-                estimated_amount=1250.00,
-                distance_miles=12.0,
-                estimated_duration_hours=3,
+            if not existing_booking1:
+                # Past booking (Completed)
+                booking1 = Booking(
+                    org_id=org.id,
+                    truck_id=truck.id,
+                    customer_name="Olivia Martin",
+                    customer_email="olivia.martin@email.com",
+                    customer_phone="+15551234567",
+                    pickup_address="123 Start St, San Francisco, CA 94102",
+                    dropoff_address="456 End Ave, Oakland, CA 94601",
+                    pickup_date=past_date,
+                    move_date=past_date,
+                    status=BookingStatus.COMPLETED,
+                    estimated_amount=1999.00,
+                    actual_amount=1999.00,
+                    distance_miles=15.5,
+                    estimated_duration_hours=4,
+                )
+                db.add(booking1)
+                count += 1
+
+            # Check if upcoming booking exists
+            result = await db.execute(
+                select(Booking).where(
+                    Booking.org_id == org.id,
+                    Booking.customer_email == "jackson.lee@email.com"
+                )
             )
-            db.add(booking2)
+            existing_booking2 = result.scalar_one_or_none()
 
-            count += 2
+            if not existing_booking2:
+                # Upcoming booking (Confirmed)
+                future_date = datetime.utcnow() + timedelta(days=1)
+                booking2 = Booking(
+                    org_id=org.id,
+                    truck_id=truck.id,
+                    customer_name="Jackson Lee",
+                    customer_email="jackson.lee@email.com",
+                    customer_phone="+15559876543",
+                    pickup_address="789 Main St, San Francisco, CA 94103",
+                    dropoff_address="321 Oak Ave, Berkeley, CA 94704",
+                    pickup_date=future_date,
+                    move_date=future_date,
+                    status=BookingStatus.CONFIRMED,
+                    estimated_amount=1250.00,
+                    distance_miles=12.0,
+                    estimated_duration_hours=3,
+                )
+                db.add(booking2)
+                count += 1
 
         await db.commit()
         print(f"✓ Created {count} bookings")
@@ -370,28 +457,35 @@ async def seed_invoices(orgs: list[Organization]):
             bookings = result.scalars().all()
 
             for booking in bookings:
-                status = (
-                    InvoiceStatus.PAID if booking.status == "COMPLETED" else InvoiceStatus.ISSUED
+                # Check if invoice already exists for this booking
+                result = await db.execute(
+                    select(Invoice).where(Invoice.booking_id == booking.id)
                 )
-                amount = (
-                    booking.actual_amount if booking.actual_amount else booking.estimated_amount
-                )
+                existing_invoice = result.scalar_one_or_none()
 
-                invoice = Invoice(
-                    org_id=org.id,
-                    booking_id=booking.id,
-                    invoice_number=f"INV-{booking.id.hex[:8].upper()}",
-                    status=status,
-                    subtotal=amount * 0.9,
-                    tax_amount=amount * 0.1,
-                    total_amount=amount,
-                    issued_at=datetime.utcnow(),
-                    due_date=datetime.utcnow() + timedelta(days=30),
-                    paid_at=datetime.utcnow() if status == InvoiceStatus.PAID else None,
-                    payment_method="credit_card" if status == InvoiceStatus.PAID else None,
-                )
-                db.add(invoice)
-                count += 1
+                if not existing_invoice:
+                    status = (
+                        InvoiceStatus.PAID if booking.status == "COMPLETED" else InvoiceStatus.ISSUED
+                    )
+                    amount = (
+                        booking.actual_amount if booking.actual_amount else booking.estimated_amount
+                    )
+
+                    invoice = Invoice(
+                        org_id=org.id,
+                        booking_id=booking.id,
+                        invoice_number=f"INV-{booking.id.hex[:8].upper()}",
+                        status=status,
+                        subtotal=amount * 0.9,
+                        tax_amount=amount * 0.1,
+                        total_amount=amount,
+                        issued_at=datetime.utcnow(),
+                        due_date=datetime.utcnow() + timedelta(days=30),
+                        paid_at=datetime.utcnow() if status == InvoiceStatus.PAID else None,
+                        payment_method="credit_card" if status == InvoiceStatus.PAID else None,
+                    )
+                    db.add(invoice)
+                    count += 1
 
         await db.commit()
         print(f"✓ Created {count} invoices")
@@ -401,34 +495,56 @@ async def seed_support_tickets(orgs: list[Organization]):
     """Create sample support tickets."""
     print("Creating support tickets...")
     from app.models.support import SupportTicket, IssueStatus, IssueType, IssuePriority
+    from sqlalchemy import select
 
     async with get_db_context() as db:
         count = 0
         for org in orgs:
-            ticket1 = SupportTicket(
-                org_id=org.id,
-                customer_name="Alice Johnson",
-                customer_email="alice@example.com",
-                subject="Late Arrival",
-                description="The movers arrived 2 hours late.",
-                issue_type=IssueType.LATE_ARRIVAL,
-                priority=IssuePriority.MEDIUM,
-                status=IssueStatus.OPEN,
+            # Check if ticket from Alice exists
+            result = await db.execute(
+                select(SupportTicket).where(
+                    SupportTicket.org_id == org.id,
+                    SupportTicket.customer_email == "alice@example.com"
+                )
             )
-            db.add(ticket1)
+            existing_ticket1 = result.scalar_one_or_none()
 
-            ticket2 = SupportTicket(
-                org_id=org.id,
-                customer_name="Bob Smith",
-                customer_email="bob@example.com",
-                subject="Damaged Item",
-                description="My lamp was broken during the move.",
-                issue_type=IssueType.DAMAGE,
-                priority=IssuePriority.HIGH,
-                status=IssueStatus.IN_PROGRESS,
+            if not existing_ticket1:
+                ticket1 = SupportTicket(
+                    org_id=org.id,
+                    customer_name="Alice Johnson",
+                    customer_email="alice@example.com",
+                    subject="Late Arrival",
+                    description="The movers arrived 2 hours late.",
+                    issue_type=IssueType.LATE_ARRIVAL,
+                    priority=IssuePriority.MEDIUM,
+                    status=IssueStatus.OPEN,
+                )
+                db.add(ticket1)
+                count += 1
+
+            # Check if ticket from Bob exists
+            result = await db.execute(
+                select(SupportTicket).where(
+                    SupportTicket.org_id == org.id,
+                    SupportTicket.customer_email == "bob@example.com"
+                )
             )
-            db.add(ticket2)
-            count += 2
+            existing_ticket2 = result.scalar_one_or_none()
+
+            if not existing_ticket2:
+                ticket2 = SupportTicket(
+                    org_id=org.id,
+                    customer_name="Bob Smith",
+                    customer_email="bob@example.com",
+                    subject="Damaged Item",
+                    description="My lamp was broken during the move.",
+                    issue_type=IssueType.DAMAGE,
+                    priority=IssuePriority.HIGH,
+                    status=IssueStatus.IN_PROGRESS,
+                )
+                db.add(ticket2)
+                count += 1
 
         await db.commit()
         print(f"✓ Created {count} support tickets")
